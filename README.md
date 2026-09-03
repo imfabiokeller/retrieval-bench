@@ -20,8 +20,8 @@ leaderboard from the files in `results/`.
 
 | model | items | overall | entities | facts | supersession | conflict | abstain | acc given retrieval hit | retries | mean latency ms | p95 latency ms | mean ttft ms | tokens in | tokens out | run cost |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| oracle | 204 | 100.0% | 100.0% (n=40) | 100.0% (n=41) | 100.0% (n=42) | 100.0% (n=41) | 100.0% (n=40) | 100.0% | 0 | 8 | 10 | 5 | 0 | 0 | $0.0000 |
-| deepseek-v4-flash | 10 | 90.0% | 90.0% (n=10) | not run | not run | not run | not run | 90.0% | 1 | 2427 | 8608 | 1704 | 9802 | 1638 | $0.0054 |
+| oracle | 204 | 100.0% | 100.0% (n=40) | 100.0% (n=41) | 100.0% (n=42) | 100.0% (n=41) | 100.0% (n=40) | 100.0% | 0 | 8 | 9 | 5 | 0 | 0 | $0.0000 |
+| deepseek-v4-flash | 204 | 94.6% | 100.0% (n=40) | 95.1% (n=41) | 90.5% (n=42) | 92.7% (n=41) | 95.0% (n=40) | 95.7% | 9 | 1819 | 3921 | 1515 | 191440 | 25953 | $0.0863 |
 | null | 204 | 19.6% | 0.0% (n=40) | 0.0% (n=41) | 0.0% (n=42) | 0.0% (n=41) | 100.0% (n=40) | 0.0% | 0 | 8 | 9 | 5 | 0 | 0 | $0.0000 |
 
 Corpus version **v1**, pipeline hash `83a514b5fba8f5e6`, prompt hash `87dccab19b3db028`. Rows are only comparable when all three match.
@@ -37,13 +37,16 @@ Every run uses temperature 0 and a 512 token output budget unless the model reje
 <!-- LEADERBOARD:END -->
 
 The `oracle` and `null` rows are the offline mocks, not models: they are there to
-show the harness measures what it claims to. `deepseek-v4-flash` is a 10 item
-smoke run that proves the provider adapter works end to end, which is why its
-`items` count is 10 and four of its axes read "not run". Its single miss is worth
-reading: the model spent the whole 512 token output budget on reasoning, returned
-no text at all, was retried once and failed the same way. The results record that
-as `finish_reason: length` with an empty output and one retry. That is the
-harness working, not the harness breaking.
+show the harness measures what it claims to. The oracle at 100% says the scorer
+accepts a correct answer on every axis; the null model at 19.6% says the abstain
+axis is exactly the 40 items it should be and nothing else is free.
+
+`deepseek-v4-flash` is the one real row so far. Its shape is the shape the
+benchmark is built to expose: `entities` is solved, and the two axes that need
+the model to prefer a later dated correction over a louder earlier statement,
+`supersession` and `conflict`, are the two that slip. Its 9 retries are items
+where the model spent the whole 512 token output budget on reasoning and returned
+no text, which the results record as `finish_reason: length` with an empty output.
 
 ## Try it without an API key
 
