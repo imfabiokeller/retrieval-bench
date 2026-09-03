@@ -68,6 +68,23 @@ test("aliases map to canonical values and never chain", () => {
   assert.ok(values.size > 0);
 });
 
+test("a gold value the corpus also writes with a qualifier has an alias for that form", () => {
+  // The class v1-fac-020 exposed: the gold value is a bare noun ("compliance")
+  // and a natural answer carries the qualifier the corpus itself uses
+  // ("compliance mode"). Every such pair is an alias, one item at a time.
+  const suffixed: [string, string][] = [
+    ["compliance mode", "compliance"],
+    ["pal project", "pal"],
+    ["dublin region", "dublin"],
+    ["frankfurt region", "frankfurt"],
+    ["q2 2026 window", "q2 2026"],
+    ["q3 2026 window", "q3 2026"],
+  ];
+  for (const [written, gold] of suffixed) {
+    assert.equal(aliases[written], gold, `"${written}" must resolve to "${gold}"`);
+  }
+});
+
 test("the committed index matches the corpus and the chunker", () => {
   const index = loadIndex(version);
   const chunks = chunkCorpus(docs);

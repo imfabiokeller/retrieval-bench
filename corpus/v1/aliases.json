@@ -1,5 +1,5 @@
 {
-  "_comment": "Alias resolution is exact-string, applied to an already normalized value (trimmed, lowercased, whitespace collapsed, surrounding punctuation stripped). Keys are normalized aliases, values are the canonical form that both the model output and the gold value are resolved to before comparison. It is never substring replacement.",
+  "_comment": "Alias resolution is exact-string, applied to an already normalized value (trimmed, lowercased, whitespace collapsed, surrounding punctuation stripped). Keys are normalized aliases, values are the canonical form that both the model output and the gold value are resolved to before comparison. It is never substring replacement. The last group before the SDK names covers gold values that are a bare noun the corpus itself also writes with a qualifier after it, so an answer of \"compliance mode\" or \"the PAL project\" resolves to the same value as \"compliance\" or \"PAL\".",
   "aliases": {
     "elena": "elena marchetti",
     "@elena": "elena marchetti",
@@ -75,6 +75,13 @@
     "launch v4": "launch-v4",
     "#support-escalations": "support-escalations",
     "support escalations": "support-escalations",
+
+    "compliance mode": "compliance",
+    "pal project": "pal",
+    "dublin region": "dublin",
+    "frankfurt region": "frankfurt",
+    "q2 2026 window": "q2 2026",
+    "q3 2026 window": "q3 2026",
 
     "typescript sdk": "typescript",
     "ts": "typescript",
