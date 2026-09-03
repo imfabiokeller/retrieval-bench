@@ -26,6 +26,7 @@ export interface RunSummary {
   meanTtftMs: number | null;
   tokensIn: number;
   tokensOut: number;
+  tokensReasoning: number;
   costUsd: number | null;
   maxTokens: number;
   temperature: number | null;
@@ -72,6 +73,7 @@ export function summarize(bundle: RunBundle): RunSummary {
     meanTtftMs: ttfts.length === 0 ? null : mean(ttfts),
     tokensIn: items.reduce((total, item) => total + (item.tokens_in ?? 0), 0),
     tokensOut: items.reduce((total, item) => total + (item.tokens_out ?? 0), 0),
+    tokensReasoning: items.reduce((total, item) => total + (item.tokens_reasoning ?? 0), 0),
     costUsd: costs.length === 0 ? null : costs.reduce((total, value) => total + value, 0),
     maxTokens: bundle.meta.params.max_tokens,
     temperature: bundle.meta.params.temperature,
@@ -117,6 +119,7 @@ export function renderLeaderboard(bundles: RunBundle[]): string {
     "mean ttft ms",
     "tokens in",
     "tokens out",
+    "tokens reasoning",
     "run cost",
   ];
   const header = [`| ${columns.join(" | ")} |`, `|${"---|".repeat(columns.length)}`];
@@ -136,6 +139,7 @@ export function renderLeaderboard(bundles: RunBundle[]): string {
       ms(summary.meanTtftMs),
       String(summary.tokensIn),
       String(summary.tokensOut),
+      String(summary.tokensReasoning),
       usd(summary.costUsd),
     ];
     return `| ${cells.join(" | ")} |`;

@@ -111,6 +111,8 @@ export interface ItemResult {
   ttft_ms: number | null;
   tokens_in: number | null;
   tokens_out: number | null;
+  /** Output tokens the provider attributed to reasoning, when it reports the split. */
+  tokens_reasoning: number | null;
   tokens_cached: number | null;
   cost_usd: number | null;
   retries: number;
@@ -144,6 +146,7 @@ export interface RunMeta {
   actual_cost_usd: number | null;
   tokens_in: number;
   tokens_out: number;
+  tokens_reasoning: number;
   tokens_cached: number;
   errors: number;
   retries: number;

@@ -25,6 +25,7 @@ export interface CallOutcome {
   ttftMs: number | null;
   tokensIn: number | null;
   tokensOut: number | null;
+  tokensReasoning: number | null;
   tokensCached: number | null;
   finishReason: string | null;
   error: string | null;
@@ -61,6 +62,7 @@ export async function callModel(
       ttftMs,
       tokensIn: usage.inputTokens ?? null,
       tokensOut: usage.outputTokens ?? null,
+      tokensReasoning: usage.outputTokenDetails?.reasoningTokens ?? null,
       tokensCached: usage.inputTokenDetails?.cacheReadTokens ?? null,
       finishReason,
       error: null,
@@ -71,6 +73,7 @@ export async function callModel(
       ttftMs,
       tokensIn: null,
       tokensOut: null,
+      tokensReasoning: null,
       tokensCached: null,
       finishReason: null,
       error: error instanceof Error ? error.message : String(error),
@@ -130,6 +133,7 @@ export async function runItem(context: RunItemContext, item: Item): Promise<Item
     ttft_ms: outcome.ttftMs,
     tokens_in: outcome.tokensIn,
     tokens_out: outcome.tokensOut,
+    tokens_reasoning: outcome.tokensReasoning,
     tokens_cached: outcome.tokensCached,
     cost_usd: costUsd(context.entry, { tokensIn, tokensOut, tokensCached }),
     retries,

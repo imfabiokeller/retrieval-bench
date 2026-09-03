@@ -360,7 +360,10 @@ Three layers, none of them written by hand.
    item with the item id, axis, retrieved chunk ids, the retrieval hit flag, the
    full rendered prompt, the raw output, the parsed object, the expected object,
    per-field correctness, whether the item is correct, latency, time to first
-   token, tokens in/out/cached, cost, retries, finish reason and any error.
+   token, tokens in/out/reasoning/cached, cost, retries, finish reason and any
+   error. `tokens_reasoning` is the part of `tokens_out` the provider attributed
+   to reasoning, and it is what makes a model that thinks its output budget away
+   visible in the results rather than only in its retry count.
    `run.json` next to it holds the run id, the model, the parameters, the corpus
    version, the pipeline and prompt hashes, the code commit, the timestamps, the
    totals, and projected against actual cost.

@@ -24,13 +24,14 @@ interface Captured {
 type FetchArgs = Parameters<typeof globalThis.fetch>;
 
 /** An OpenAI-shaped streaming response, plus the request body it was asked with. */
-function capturingFetch(captured: Captured[]): typeof globalThis.fetch {
+function capturingFetch(captured: Captured[], reasoningTokens: number | null): typeof globalThis.fetch {
   return (async (input: FetchArgs[0], init?: FetchArgs[1]) => {
     captured.push({
       url: String(input),
       body: JSON.parse(String(init?.body ?? "{}")) as Record<string, unknown>,
     });
     const usage: Record<string, unknown> = { prompt_tokens: 100, completion_tokens: 20 };
+    if (reasoningTokens !== null) usage.completion_tokens_details = { reasoning_tokens: reasoningTokens };
     const events = [
       { id: "1", object: "chat.completion.chunk", created: 0, model: "test", choices: [{ index: 0, delta: { role: "assistant", content: '{"value":1}' }, finish_reason: null }] },
       { id: "1", object: "chat.completion.chunk", created: 0, model: "test", choices: [{ index: 0, delta: {}, finish_reason: "stop" }], usage },
@@ -40,12 +41,15 @@ function capturingFetch(captured: Captured[]): typeof globalThis.fetch {
   }) as typeof globalThis.fetch;
 }
 
-async function callWith(entry: ModelEntry): Promise<{ captured: Captured[] }> {
+async function callWith(
+  entry: ModelEntry,
+  reasoningTokens: number | null = null,
+): Promise<{ captured: Captured[]; outcome: Awaited<ReturnType<typeof callModel>> }> {
   const captured: Captured[] = [];
-  const factory = createModelFactory(entry, { fetch: capturingFetch(captured) });
+  const factory = createModelFactory(entry, { fetch: capturingFetch(captured, reasoningTokens) });
   const params = runParamsFor(entry, RETRIEVAL_DEFAULTS);
-  await callModel(factory.forItem({} as never), "QUESTION\nwhat?", entry, params);
-  return { captured };
+  const outcome = await callModel(factory.forItem({} as never), "QUESTION\nwhat?", entry, params);
+  return { captured, outcome };
 }
 
 function testEntry(overrides: Partial<ModelEntry>): ModelEntry {
@@ -107,4 +111,13 @@ test("the qwen entry in models.json sends enable_thinking false", async () => {
   const entry = { ...findModel("qwen-plus"), apiKeyEnv: KEY_ENV };
   const { captured } = await callWith(entry);
   assert.equal(captured[0]?.body.enable_thinking, false, "dashscope must be asked for the non-thinking model");
+});
+
+test("reasoning tokens are read off the usage details the endpoint reports", async () => {
+  const withReasoning = await callWith(testEntry({}), 64);
+  assert.equal(withReasoning.outcome.tokensReasoning, 64);
+  assert.equal(withReasoning.outcome.tokensOut, 20, "reasoning tokens are part of the output tokens, not extra");
+
+  const withoutReasoning = await callWith(testEntry({}), null);
+  assert.equal(withoutReasoning.outcome.tokensReasoning, 0, "an endpoint that reports no split reports zero");
 });

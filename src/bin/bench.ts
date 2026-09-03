@@ -132,6 +132,7 @@ async function runModel(entry: ModelEntry, items: Item[], options: Options): Pro
     actual_cost_usd: actualCosts.length === 0 ? null : actualCosts.reduce((total, value) => total + value, 0),
     tokens_in: results.reduce((total, result) => total + (result.tokens_in ?? 0), 0),
     tokens_out: results.reduce((total, result) => total + (result.tokens_out ?? 0), 0),
+    tokens_reasoning: results.reduce((total, result) => total + (result.tokens_reasoning ?? 0), 0),
     tokens_cached: results.reduce((total, result) => total + (result.tokens_cached ?? 0), 0),
     errors: results.filter((result) => result.error !== null).length,
     retries: results.reduce((total, result) => total + result.retries, 0),

@@ -30,6 +30,7 @@ function item(id: string, axis: Axis, correct: boolean, overrides: Partial<ItemR
     ttft_ms: 40,
     tokens_in: 800,
     tokens_out: 20,
+    tokens_reasoning: 5,
     tokens_cached: 0,
     cost_usd: 0.001,
     retries: 0,
@@ -59,6 +60,7 @@ const meta: RunMeta = {
   actual_cost_usd: 0.004,
   tokens_in: 3200,
   tokens_out: 80,
+  tokens_reasoning: 20,
   tokens_cached: 0,
   errors: 0,
   retries: 0,
@@ -91,6 +93,13 @@ test("the CSV carries compact expected and got objects, not prompts or raw outpu
 test("an empty retrieval hit flag is written as an empty cell", () => {
   const row = toCsv([bundle]).trim().split("\n")[4] ?? "";
   assert.ok(row.includes(",abstain,,true,"), `abstain row was ${row}`);
+});
+
+test("reasoning tokens are totalled per run and shown as their own column", () => {
+  assert.equal(summarize(bundle).tokensReasoning, 20, "four items at five reasoning tokens each");
+  const block = renderLeaderboard([bundle]);
+  assert.ok(block.includes("| tokens out | tokens reasoning |"), block);
+  assert.ok(toCsv([bundle]).split("\n")[0]?.includes("tokens_out,tokens_reasoning,tokens_cached"));
 });
 
 test("summarize computes overall, per-axis and conditioned accuracy", () => {
