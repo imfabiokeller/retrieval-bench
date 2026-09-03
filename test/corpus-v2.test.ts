@@ -142,6 +142,43 @@ test("an issue answered by its title scores the same as one answered by its id",
   assert.equal(wrong.fields.find((entry) => entry.field === "root_cause_issue")?.correct, false, decoy);
 });
 
+// Two ways to close the gap between the gold value and the way the corpus writes
+// it, and which one is right depends on what the qualifier does. An alias is
+// corpus-wide, so it is only safe when the qualifier adds nothing: "the linux-8x
+// runner" for a field already called build_runner. When the qualifier changes
+// what is being named, the gold is tightened to the written phrase instead,
+// because an alias would then make that phrase correct for a different field.
+test("a gold value the corpus writes with an empty qualifier has an alias for that form", () => {
+  const suffixed: [string, string][] = [
+    ["linux-8x runner", "linux-8x"],
+    ["bundles endpoint", "bundles"],
+    ["request logs only", "request logs"],
+    ["business hours only", "business hours"],
+    ["plain http", "http"],
+  ];
+  for (const [written, gold] of suffixed) {
+    assert.equal(aliases[written], gold, `"${written}" must resolve to "${gold}"`);
+  }
+});
+
+test("a qualifier that names a different thing is in the gold value, not in the alias table", () => {
+  const byId = new Map(items.map((item) => [item.id, item]));
+  const tightened: [string, string, string][] = [
+    ["v2-case-001", "measurement_point", "Amsterdam edge"],
+    ["v2-case-002", "measurement_point", "Sydney probe"],
+    ["v2-case-004", "storage_backend", "Postgres replica"],
+  ];
+  for (const [id, field, gold] of tightened) {
+    assert.equal(byId.get(id)?.expected[field], gold, `${id}.${field}`);
+    assert.equal(aliases[gold.toLowerCase()], undefined, `"${gold}" is the canonical form, not an alias`);
+  }
+  // "Amsterdam" and "Sydney" stay the canonical names of the two regions, which
+  // is exactly why the measurement points could not be aliased to them.
+  assert.equal(aliases["amsterdam"], undefined);
+  assert.equal(aliases["amsterdam region"], "amsterdam");
+  assert.equal(aliases["sydney region"], "sydney");
+});
+
 test("the renamed product keeps two canonical names, one for each period", () => {
   assert.equal(aliases["the ledger"], "palisade ledger");
   assert.equal(aliases["audit vault"], "wrenfield audit vault");

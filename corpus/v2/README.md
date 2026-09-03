@@ -157,6 +157,27 @@ with and without the leading `#`, region names with and without the word
 "region". Alias resolution is exact match on the whole normalized string, never
 substring replacement, and aliases never chain.
 
+**Issue titles.** Every one of the 22 real issues aliases its title to its id, so
+`policy cache stampede on cold start` resolves to `wrn-204`. A question that asks
+which issue tracks something expects the id, and the only place the id is written
+is the issue record itself: Slack names the issue by its title and never by its
+id. Answering with the title is answering the question. The 14 near-duplicate
+decoy issues have no alias, so answering with a decoy title stays wrong, and both
+halves of that are asserted in `test/corpus-v2.test.ts`.
+
+**Qualified forms.** Where the corpus writes a gold value with a qualifier that
+adds nothing the schema field does not already say, the written form is an alias:
+`linux-8x runner` for a `build_runner`, `bundles endpoint` for an
+`upload_endpoint`, `request logs only`, `business hours only`, `plain http`.
+Where the qualifier names a different thing, the gold value was tightened to the
+phrase the corpus writes instead of aliased, because an alias is corpus-wide and
+would then make the qualified form correct for a field it does not answer. That
+is why `v2-case-001.measurement_point` is `Amsterdam edge` and not `Amsterdam`,
+`v2-case-002.measurement_point` is `Sydney probe`, and
+`v2-case-004.storage_backend` is `Postgres replica`: Amsterdam and Sydney are
+residency regions elsewhere in this corpus, and the storage backend document is
+about the replica rather than the primary.
+
 Two deliberate absences. There is no alias for the bare first name **Ravi**,
 because two people carry it on two teams and the first name does not identify
 either of them. There is no alias for the bare word **relay**, because it is also
