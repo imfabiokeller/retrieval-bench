@@ -97,6 +97,12 @@ test("an omitTemperature model sends no temperature at all", async () => {
   assert.ok(!("temperature" in (captured[0]?.body ?? {})), "temperature must be absent, not null");
 });
 
+test("the deepseek entry in models.json sends its thinking flag", async () => {
+  const entry = { ...findModel("deepseek-v4-flash"), apiKeyEnv: KEY_ENV };
+  const { captured } = await callWith(entry);
+  assert.deepEqual(captured[0]?.body.thinking, { type: "disabled" }, "deepseek must be asked for the non-thinking model");
+});
+
 test("the qwen entry in models.json sends enable_thinking false", async () => {
   const entry = { ...findModel("qwen-plus"), apiKeyEnv: KEY_ENV };
   const { captured } = await callWith(entry);

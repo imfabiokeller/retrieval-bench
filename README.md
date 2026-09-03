@@ -103,9 +103,14 @@ One entry in `models.json` and one command. No code.
 
 `provider` is `anthropic` (the Messages API through `@ai-sdk/anthropic`),
 `openai-compatible` (any OpenAI-shaped endpoint through
-`@ai-sdk/openai-compatible`) or `mock` (offline). Anything under
-`providerOptions` is passed to the provider untouched, which is how DashScope
-gets `enable_thinking: false` and how Anthropic models get thinking disabled.
+`@ai-sdk/openai-compatible`) or `mock` (offline). `providerOptions` is keyed by
+`providerName`, and for an OpenAI-shaped endpoint every key under it is written
+straight into the JSON request body. That is how DeepSeek gets
+`thinking: {"type": "disabled"}`, DashScope gets `enable_thinking: false` and
+Anthropic models get thinking disabled. `test/request-body.test.ts` captures the
+outgoing request against a mock endpoint and asserts those fields are on it, so a
+provider package that stopped forwarding them fails the suite instead of quietly
+spending a paid run's output budget on reasoning.
 
 Prices are US dollars per million tokens, copied from the provider's own
 published pricing on the date in `pricing_verified`. Nothing is estimated: a

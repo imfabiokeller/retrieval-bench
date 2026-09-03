@@ -50,9 +50,10 @@
       "modelId": "deepseek-v4-flash",
       "baseURL": "https://api.deepseek.com/v1",
       "apiKeyEnv": "DEEPSEEK_API_KEY",
+      "providerOptions": { "deepseek": { "thinking": { "type": "disabled" } } },
       "pricing": { "input_per_mtok": 0.44, "output_per_mtok": 1.32, "cached_input_per_mtok": 0.014 },
       "pricing_verified": "2026-09-03",
-      "notes": "DeepSeek prices differ between peak and off-peak hours. The peak rate is recorded here so every estimate is an upper bound; off-peak is half. Thinking mode is on by default for this model."
+      "notes": "DeepSeek prices differ between peak and off-peak hours. The peak rate is recorded here so every estimate is an upper bound; off-peak is half. Thinking is on by default, and api-docs.deepseek.com documents thinking as a request body object on POST /chat/completions with type enabled or disabled, so it is set to disabled here: with it enabled the model spent the whole 512 token output budget on reasoning and returned no text."
     },
     {
       "name": "qwen-plus",
