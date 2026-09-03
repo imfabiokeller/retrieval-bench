@@ -1,0 +1,7 @@
+{
+  "_comment": "Retrieval parameters for corpus v2. A v2 item is a case whose fields are spread over more documents than a v1 item, so it reads 12 chunks where v1 reads 8. Everything else is what v1 used.",
+  "top_n": 12,
+  "rrf_k": 60,
+  "recency_weight": 0.1,
+  "max_chunks_per_doc": 2
+}
