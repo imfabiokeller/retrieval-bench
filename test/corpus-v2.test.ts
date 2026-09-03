@@ -6,7 +6,7 @@ import { strict as assert } from "node:assert";
 import { test } from "node:test";
 import { loadAliases, loadDocs, loadItems, loadRetrievalParams } from "../src/corpus.js";
 import { chunkCorpus } from "../src/chunk.js";
-import { fieldAxis, fieldGoldDocIds, fieldRetrievalHit } from "../src/fields.js";
+import { fieldAxis, fieldGoldDocIds, fieldRetrievalFull, fieldRetrievalHit } from "../src/fields.js";
 import { loadIndex } from "../src/index-io.js";
 import { RETRIEVAL_DEFAULTS, Retriever } from "../src/retrieve.js";
 import { validateCorpus } from "../src/validate.js";
@@ -86,7 +86,7 @@ test("item ids are stable and follow the versioned scheme", () => {
 
 test("the retrieval parameters belong to the corpus version", () => {
   const params = loadRetrievalParams(version, RETRIEVAL_DEFAULTS);
-  assert.equal(params.top_n, 12, "v2 reads twelve chunks");
+  assert.equal(params.top_n, 32, "v2 reads thirty-two chunks, set against the full-retrieval rate");
   assert.equal(params.rrf_k, 60);
   assert.equal(params.recency_weight, 0.1);
   assert.equal(params.max_chunks_per_doc, 2);
@@ -126,26 +126,69 @@ test("the committed index matches the corpus and the chunker", () => {
   }
 });
 
-test("the retrieval hit rate is hard enough to separate reading from retrieving", () => {
+// The band is on FULL retrieval, not on the any-document hit rate. A join field
+// whose two gold documents were half retrieved is a hit and is still
+// unanswerable, so the any-document rate reads 100% on the join axis while two
+// thirds of its fields were handed half the evidence. Reading is measured over
+// the fields that had all of theirs, so that is the number the corpus is tuned
+// against and the number this test defends.
+test("the full-retrieval rate is high enough that the leaderboard measures reading", () => {
   const index = loadIndex(version);
   const retriever = new Retriever(index.chunks, index.chunkVectors);
   const params = loadRetrievalParams(version, RETRIEVAL_DEFAULTS);
-  let hits = 0;
+  const perAxis = new Map<Axis, { full: number; any: number; n: number }>();
+  let full = 0;
+  let any = 0;
   let scored = 0;
   for (const item of items) {
     const retrieved = retriever.retrieve(item.question, index.queryVectors.get(item.id), params);
     const retrievedDocIds = [...new Set(retrieved.map((entry) => entry.chunk.doc_id))];
     assert.equal(retrieved.length, params.top_n, `${item.id} retrieved ${retrieved.length} chunks`);
     for (const field of item.schema.required) {
-      const hit = fieldRetrievalHit(item, field, retrievedDocIds);
-      if (hit === null) {
+      const complete = fieldRetrievalFull(item, field, retrievedDocIds);
+      if (complete === null) {
         assert.equal(fieldGoldDocIds(item, field).length, 0);
+        assert.equal(fieldRetrievalHit(item, field, retrievedDocIds), null);
         continue;
       }
+      const axis = fieldAxis(item, field);
+      const tally = perAxis.get(axis) ?? { full: 0, any: 0, n: 0 };
+      tally.n += 1;
       scored += 1;
-      if (hit) hits += 1;
+      if (complete) {
+        tally.full += 1;
+        full += 1;
+      }
+      if (fieldRetrievalHit(item, field, retrievedDocIds) === true) {
+        tally.any += 1;
+        any += 1;
+      }
+      perAxis.set(axis, tally);
     }
   }
-  const rate = hits / scored;
-  assert.ok(rate >= 0.85 && rate <= 0.9, `the hit rate is ${(rate * 100).toFixed(1)}%, outside the 85% to 90% band`);
+  const rate = full / scored;
+  assert.ok(
+    rate >= 0.83 && rate <= 0.87,
+    `the full-retrieval rate is ${(rate * 100).toFixed(1)}%, outside the 83% to 87% band`,
+  );
+  assert.ok(full < any, "the any-document rate is the looser flag and has to stay looser");
+
+  // Every axis clears 70% except the two that need a second hop retrieval cannot
+  // make: a join names its issue by title and the id is on a record the question
+  // never mentions, and an exhaustive set is spread over documents that share no
+  // wording. Both have a floor of their own so they cannot quietly regress.
+  const SECOND_HOP = new Set<Axis>(["join", "exhaustive"]);
+  const floors: Partial<Record<Axis, number>> = { join: 0.45, exhaustive: 0.55 };
+  for (const [axis, tally] of perAxis) {
+    const axisRate = tally.full / tally.n;
+    const floor = SECOND_HOP.has(axis) ? floors[axis]! : 0.7;
+    assert.ok(
+      axisRate >= floor,
+      `${axis} full-retrieval is ${(axisRate * 100).toFixed(1)}%, under its ${(floor * 100).toFixed(0)}% floor`,
+    );
+  }
+  for (const axis of SECOND_HOP) {
+    const tally = perAxis.get(axis)!;
+    assert.ok(tally.any > tally.full, `${axis} is the axis where the any-document flag overstates retrieval`);
+  }
 });

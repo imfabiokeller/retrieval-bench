@@ -30,8 +30,10 @@ with the same gold documents and the same expected value, asked on their own.
 They carry `twin_of` and the report prints the gap between the two.
 
 **Retrieval parameters live here.** `params.json` holds them, and the runner
-reads them from there: `top_n` 12 for v2 against 8 for v1, everything else the
-same. A v2 case is broader than a v1 item and its fields sit in more documents.
+reads them from there: `top_n` 32 for v2 against 8 for v1, everything else the
+same. A v2 case is broader than a v1 item, its fields sit in more documents, and
+several of its axes are only answerable when every one of a field's gold
+documents is retrieved. See "Retrieval parameters" below for how 32 was chosen.
 
 ## The company
 
@@ -111,7 +113,7 @@ answers.
   order with different values, and 35 monthly digests name every metric, list,
   vendor, outage, issue, decision and setting in the corpus while answering none
   of them. The digests are long enough to chunk in two, so one of them takes two
-  of the twelve retrieval slots.
+  retrieval slots on its own.
 - **Near-duplicate distractors.** 14 issues whose titles differ from a real one
   by a word, opened by plausible people, gold for nothing.
 - **Absences.** Revenue, tenant counts, investors, a Tokyo region, an Android
@@ -169,12 +171,67 @@ committed so that running the benchmark needs a key for the model under test and
 nothing else.
 
 `params.json` holds the retrieval parameters this corpus is read with: `top_n`
-12, `rrf_k` 60, `recency_weight` 0.1, `max_chunks_per_doc` 2. They are part of the
+32, `rrf_k` 60, `recency_weight` 0.1, `max_chunks_per_doc` 2. They are part of the
 corpus version, not of the harness.
 
-With those parameters the retrieval hit rate is **88.5%** of the 399 fields that
-have gold documents, which is a property of the pipeline and the corpus and not
-of any model. It is deliberately not near 100%: template noise and near-duplicate
-distractors were added until it landed between 85% and 90%, so that a leaderboard
-can separate a model that reads badly from a model that was handed the wrong
-evidence.
+## Retrieval parameters
+
+Two flags are measured per field, and they are not the same question.
+
+- **hit**: at least one retrieved chunk comes from one of that field's own gold
+  documents.
+- **full**: every one of that field's gold documents has a chunk in the retrieved
+  set.
+
+On a field whose answer lives in one document the two are the same. On a `join`,
+`exhaustive` or `aggregation` field they are not, and the difference is the whole
+point: at `top_n` 12 the any-document hit rate on the join axis was **100%** while
+only **15 of 49** join fields had both of their gold documents. A model shown one
+half of a two-document answer cannot get it right, and counting that as evidence
+about the model is counting a retrieval failure as a reading failure. `full` is
+therefore what the parameters are tuned against.
+
+v2 was first published with `top_n` 12. That was set against the hit rate, and it
+left the full-retrieval rate at 70.4%. It was raised to **32** before any of these
+numbers were published as a leaderboard:
+
+| `top_n` | full-retrieval rate | hit rate | worst axis (full) | projected `claude-opus-5` run |
+| --- | --- | --- | --- | --- |
+| 12 | 70.4% | 88.5% | join 30.6% | $2.41 |
+| 16 | 74.7% | 91.5% | join 32.7% | $2.61 |
+| 20 | 76.7% | 91.5% | join 34.7% | $2.80 |
+| 24 | 81.0% | 93.7% | join 40.8% | $2.98 |
+| **32** | **85.0%** | **96.7%** | **join 46.9%** | **$3.32** |
+| 48 | 87.5% | 97.7% | join 55.1% | $4.01 |
+| 64 | 92.0% | 98.5% | join 63.3% | $4.71 |
+| 96 | 96.2% | 99.0% | join 77.6% | $6.14, over the $5 cap |
+
+`max_chunks_per_doc` was left at 2 because it is not a live lever here: the
+longest document packs into two chunks, so no value above 2 changes what is
+retrieved.
+
+Per axis at `top_n` 32, over the 399 fields that have gold documents:
+
+| axis | fields | full | hit |
+| --- | --- | --- | --- |
+| `entities` | 59 | 88.1% | 88.1% |
+| `facts` | 42 | 97.6% | 97.6% |
+| `supersession` | 51 | 92.2% | 92.2% |
+| `conflict` | 53 | 98.1% | 98.1% |
+| `asof` | 52 | 100.0% | 100.0% |
+| `join` | 49 | 46.9% | 100.0% |
+| `exhaustive` | 50 | 60.0% | 100.0% |
+| `aggregation` | 43 | 97.7% | 100.0% |
+
+Seven axes are at or above 88%. `join` and `exhaustive` are not, and no value of
+`top_n` under the $5 spend cap brings them to 70%: a join names its issue by
+title in a Slack message and the id is on an issue record the question never
+mentions, so reaching it is a second hop that a single-shot retrieval cannot
+make. `join` needs `top_n` 96 to clear 70%, which projects to $6.14 for the
+priciest model in `models.json` and hands the model a fifth of the corpus. The
+two axes keep their own floors in `test/corpus-v2.test.ts` instead, and the
+leaderboard reports accuracy given full retrieval so that the 26 join fields
+still short of their evidence are not read as reading failures.
+
+Changing these numbers again is a `v3`, not an edit. They were changed here
+because v2 had not been published as a leaderboard yet.

@@ -1,6 +1,6 @@
 {
-  "_comment": "Retrieval parameters for corpus v2. A v2 item is a case whose fields are spread over more documents than a v1 item, so it reads 12 chunks where v1 reads 8. Everything else is what v1 used.",
-  "top_n": 12,
+  "_comment": "Retrieval parameters for corpus v2. A v2 item is a case whose fields are spread over more documents than a v1 item, and several of its axes are only answerable when EVERY gold document of a field is retrieved, so top_n is set against the full-retrieval rate rather than against the any-document hit rate. At 12 chunks the full-retrieval rate was 70.4%; at 32 it is 85.0%. Everything else is what v1 used. max_chunks_per_doc is not a live lever on this corpus: no document produces more than two chunks, so raising it changes nothing. See README.md, section 'Retrieval parameters', for the sweep and the cost.",
+  "top_n": 32,
   "rrf_k": 60,
   "recency_weight": 0.1,
   "max_chunks_per_doc": 2
