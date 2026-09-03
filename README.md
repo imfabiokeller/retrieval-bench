@@ -315,14 +315,17 @@ The measured numbers for corpus v1, all 204 items:
 - 164,448 estimated input tokens in total, which is **806 tokens per item**
   including the system prompt. Roughly 350 of those are the system prompt and
   the schema, and the rest is the 8 retrieved chunks with their metadata.
-- 104,448 output tokens at the 512 token ceiling, which is a worst case; the
-  observed output on the smoke run was 43 to 323 tokens per item.
+- 104,448 output tokens at the 512 token ceiling, which is the worst case. The
+  full `deepseek-v4-flash` run actually emitted 25,953 output tokens, 127 per
+  item.
 - The most expensive model in `models.json` is `claude-opus-5` at $5.00 per
   million input tokens and $25.00 per million output tokens. That projects to
   164,448 × $5 / 1e6 = **$0.82** of input plus 104,448 × $25 / 1e6 = **$2.61** of
   output, so **$3.43** for a full run, under the cap.
-- On real output lengths rather than the ceiling, a full run costs closer to a
-  dollar.
+- At the observed output length rather than the ceiling, the same run costs
+  $0.82 + 25,953 × $25 / 1e6 = about **$1.47**. The projection is deliberately
+  the pessimistic number, so the cap is never a surprise: the `deepseek-v4-flash`
+  run projected $0.2102 and actually cost $0.0863.
 
 Since the projection for every model in `models.json` fits under the cap, no
 reduction to `top_n` or the chunk size was needed.
