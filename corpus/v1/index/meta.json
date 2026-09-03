@@ -1,0 +1,12 @@
+{
+  "corpus_version": "v1",
+  "embedding_model": "gemini-embedding-001",
+  "embedding_endpoint": "google generative ai (@ai-sdk/google)",
+  "dims": 768,
+  "chunk_count": 120,
+  "doc_count": 120,
+  "query_count": 204,
+  "embedding_tokens": null,
+  "built_at": "2026-09-03T17:25:20.869Z",
+  "chunk_target_chars": 500
+}
