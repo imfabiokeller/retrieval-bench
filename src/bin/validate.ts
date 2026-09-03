@@ -1,17 +1,28 @@
 // npm run validate -- --version v1
 //
-// Structural checks on the frozen corpus, plus a grounding report. The
-// structural checks are also a test; the grounding report is advisory and is
-// meant to be read by a human before a corpus version is frozen. It flags any
-// non-abstain item whose expected value could not be found in the text of any
-// of its gold documents, which is usually an authoring mistake and occasionally
-// a legitimate paraphrase (a date written as "7 April 2026", a boolean).
+// Everything a frozen corpus has to satisfy, in one command: the structural
+// rules, the grounding rules, the family and trap floors, and the guarantee.
+//
+// The guarantee is the one that decides whether the corpus is publishable. It
+// runs the frozen retrieval for every question and prints every gold source that
+// had no chunk in the window, with the question id, so a miss is fixed by
+// rewriting a document or a question rather than by adding a retrieval step.
 
-import { loadAliases, loadDocs, loadItems } from "../corpus.js";
-import { fieldMeta } from "../fields.js";
-import { baseNormalize, normalizeField } from "../normalize.js";
-import { validateCorpus } from "../validate.js";
-import type { Axis } from "../types.js";
+import { loadAliases, loadDocs, loadQuestions, loadRetrievalParams } from "../corpus.js";
+import { loadIndex } from "../index-io.js";
+import { RETRIEVAL_DEFAULTS, Retriever } from "../retrieve.js";
+import {
+  DESIGN_MIN_PER_FAMILY,
+  MIN_HISTORY_SCORED,
+  MIN_PER_FAMILY,
+  MIN_PER_TRAP,
+  checkGuarantee,
+  coverageOf,
+  validateCoverage,
+  validateGrounding,
+  validateStructure,
+} from "../validate.js";
+import { FAMILIES, TRAPS } from "../types.js";
 
 function arg(name: string, fallback: string): string {
   const index = process.argv.indexOf(`--${name}`);
@@ -20,48 +31,42 @@ function arg(name: string, fallback: string): string {
 
 const version = arg("version", "v1");
 const docs = loadDocs(version);
-const items = loadItems(version);
+const questions = loadQuestions(version);
 const aliases = loadAliases(version);
+const params = loadRetrievalParams(version, RETRIEVAL_DEFAULTS);
 
-const problems = validateCorpus(docs, items);
-for (const problem of problems) console.log(`PROBLEM ${problem}`);
+const structure = validateStructure(docs, questions);
+const grounding = validateGrounding(docs, questions, aliases);
+const coverage = validateCoverage(questions);
+for (const problem of [...structure, ...grounding, ...coverage]) console.log(`PROBLEM ${problem}`);
 
-const textById = new Map(docs.map((doc) => [doc.id, [doc.id, doc.type, doc.channel ?? "", doc.project ?? "", doc.parent_id ?? "", doc.title ?? "", doc.author, doc.created_at, doc.text].join(" ")]));
-// Grounding is checked per field against that field's own gold documents. An
-// aggregation field is exempt: its answer is arithmetic over several documents
-// and is not meant to appear anywhere as a literal.
-let weak = 0;
-let scoredFields = 0;
-const perAxis = new Map<Axis, number>();
-for (const item of items) {
-  for (const field of item.schema.required) {
-    const meta = fieldMeta(item, field);
-    scoredFields += 1;
-    perAxis.set(meta.axis, (perAxis.get(meta.axis) ?? 0) + 1);
-    const type = item.schema.properties[field]?.type ?? "string";
-    if (meta.axis === "abstain" || meta.axis === "aggregation" || type === "boolean") continue;
-    const expected = normalizeField(item.expected[field] ?? null, type, aliases);
-    if (expected.value === null) continue;
-    const needles = Array.isArray(expected.value) ? expected.value : [String(expected.value)];
-    const haystack = meta.gold_doc_ids.map((id) => baseNormalize(textById.get(id) ?? "") ?? "").join(" ");
-    for (const needle of needles) {
-      if (!haystack.includes(needle)) {
-        weak += 1;
-        console.log(`WEAK ${item.id}.${field}: "${needle}" is not literally in the gold documents`);
-      }
-    }
-  }
+const index = loadIndex(version);
+const guarantee = checkGuarantee(questions, new Retriever(index.chunks, index.chunkVectors), index.queryVectors, params);
+for (const miss of guarantee.misses) {
+  console.log(`MISS ${miss.questionId} (${miss.family}): ${miss.missing.join(", ")} not in the window of ${miss.retrieved} documents`);
 }
 
-const twins = items.filter((item) => item.twin_of !== undefined).length;
+const counts = coverageOf(questions);
+const characters = docs.reduce((total, doc) => total + doc.text.length, 0);
+console.log("");
 console.log(
-  `${version}: ${docs.length} docs, ${items.length} items (${twins} twins), ${scoredFields} scored fields, ` +
-    `${problems.length} structural problems, ${weak} weakly grounded fields`,
+  `${version}: ${docs.length} docs, ${characters} characters, ${questions.length} questions, ` +
+    `${counts.historyScored} with a scored history chain (floor ${MIN_HISTORY_SCORED}).`,
+);
+console.log(`retrieval: top_n ${params.top_n}, rrf_k ${params.rrf_k}, recency_weight ${params.recency_weight}, max_chunks_per_doc ${params.max_chunks_per_doc}`);
+console.log(
+  `guarantee: ${guarantee.met}/${guarantee.checked} questions had every gold source in the window ` +
+    `(${guarantee.checked === 0 ? "n/a" : ((guarantee.met / guarantee.checked) * 100).toFixed(1)}%).`,
 );
 console.log(
-  [...perAxis.entries()]
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([axis, count]) => `  ${axis}: ${count} fields`)
-    .join("\n"),
+  `families (floor ${MIN_PER_FAMILY}, the design asks for ${DESIGN_MIN_PER_FAMILY} cost permitting): ` +
+    FAMILIES.map((family) => `${family} ${counts.perFamily[family]}`).join(", "),
 );
-process.exitCode = problems.length === 0 ? 0 : 1;
+console.log(`traps (floor ${MIN_PER_TRAP}): ` + TRAPS.map((trap) => `${trap} ${counts.perTrap[trap]}`).join(", "));
+console.log(
+  `${structure.length} structural problems, ${grounding.length} grounding problems, ` +
+    `${coverage.length} coverage shortfalls, ${guarantee.misses.length} guarantee misses.`,
+);
+
+const failures = structure.length + grounding.length + coverage.length + guarantee.misses.length;
+process.exitCode = failures === 0 ? 0 : 1;

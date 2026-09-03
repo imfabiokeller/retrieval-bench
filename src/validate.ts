@@ -1,31 +1,50 @@
-// Structural rules a frozen corpus has to satisfy. Used by `npm run validate`
-// and by the test suite, so a corpus that breaks one of these fails CI rather
-// than quietly producing a wrong leaderboard.
+// What a frozen corpus has to satisfy. Used by `npm run validate` and by the
+// test suite, so a corpus that breaks one of these fails CI rather than quietly
+// producing a wrong leaderboard.
 //
-// The rules are written against the per-field shape and apply to both corpus
-// versions: a v1 item states no `fields`, so each of its fields inherits the
-// item-level axis and gold documents and is then checked like any other.
+// Four kinds of check:
+//
+//   structure   ids, dates, types, the shape of every question and its gold pack
+//   grounding   every gold value is literally in the text of its gold sources,
+//               and every `from` date in a chain is on or after the document
+//               that states that step
+//   coverage    every family and every trap kind carries at least the minimum
+//               number of questions the design asks for
+//   guarantee   the frozen retrieval is run for every question and every gold
+//               source must have a chunk in the window. This is the check the
+//               corpus is written until it passes at 100 percent.
 
-import { fieldMeta, goldDocIdsOf } from "./fields.js";
-import type { Axis, Doc, FieldType, Item } from "./types.js";
+import { baseNormalize, normalizeField } from "./normalize.js";
+import type { Aliases } from "./normalize.js";
+import { Retriever } from "./retrieve.js";
+import { FAMILIES, TRAPS } from "./types.js";
+import type { AnswerType, AnswerValue, Doc, Family, Question, RetrievalParams, Trap } from "./types.js";
 
-const TYPES = new Set<FieldType>(["string", "number", "date", "time", "boolean", "string[]"]);
-const AXES = new Set<Axis>([
-  "entities",
-  "facts",
-  "supersession",
-  "conflict",
-  "abstain",
-  "asof",
-  "join",
-  "exhaustive",
-  "aggregation",
-]);
+const TYPES = new Set<AnswerType>(["string", "number", "date", "time", "boolean", "string[]"]);
+const FAMILY_SET = new Set<Family>(FAMILIES);
+const TRAP_SET = new Set<Trap>(TRAPS);
 
-/** Axes whose answer is only defined by walking more than one document. */
-const MULTI_DOC_AXES = new Set<Axis>(["join", "exhaustive", "aggregation"]);
+// The design's floors. A shortfall is a failure, not a warning.
+//
+// DESIGN.md asks for thirty or more questions per family "cost permitting", and
+// the cost does not permit thirty: a full run has to project under five dollars
+// for the most expensive model in models.json, and at this window size that line
+// falls at roughly two hundred questions in total. The per-family floor is
+// therefore the design's number cut evenly across the ten families, and the
+// design's own number is kept here beside it so the gap is visible rather than
+// forgotten. The trap floor is met in full.
+export const DESIGN_MIN_PER_FAMILY = 30;
+export const MIN_PER_FAMILY = 20;
+export const MIN_PER_TRAP = 15;
+/** Questions whose gold carries a scored chain. */
+export const MIN_HISTORY_SCORED = 40;
+/** Steps a scored chain needs, so a chain is a chain and not one change. */
+export const MIN_CHAIN_STEPS = 3;
 
-function typeOf(value: unknown, declared: FieldType): boolean {
+/** Families whose answer is only defined by walking more than one document. */
+const MULTI_DOC_FAMILIES = new Set<Family>(["join", "multihop", "exhaustive", "aggregation"]);
+
+function typeOf(value: unknown, declared: AnswerType): boolean {
   switch (declared) {
     case "string":
       return typeof value === "string";
@@ -44,13 +63,7 @@ function typeOf(value: unknown, declared: FieldType): boolean {
   }
 }
 
-function sameSet(a: string[], b: string[]): boolean {
-  const left = [...new Set(a)].sort();
-  const right = [...new Set(b)].sort();
-  return left.length === right.length && left.every((value, index) => value === right[index]);
-}
-
-export function validateCorpus(docs: Doc[], items: Item[]): string[] {
+export function validateStructure(docs: Doc[], questions: Question[]): string[] {
   const problems: string[] = [];
   const docIds = new Set<string>();
 
@@ -65,116 +78,228 @@ export function validateCorpus(docs: Doc[], items: Item[]): string[] {
     if (doc.type === "issue_comment" && !doc.parent_id) problems.push(`${doc.id}: comment without a parent_id`);
   }
   for (const doc of docs) {
-    if (doc.parent_id && !docIds.has(doc.parent_id)) problems.push(`${doc.id}: parent_id ${doc.parent_id} does not exist`);
+    if (doc.parent_id && !docIds.has(doc.parent_id)) {
+      problems.push(`${doc.id}: parent_id ${doc.parent_id} does not exist`);
+    }
   }
 
-  const itemIds = new Set<string>();
-  for (const item of items) {
-    if (itemIds.has(item.id)) problems.push(`duplicate item id ${item.id}`);
-    itemIds.add(item.id);
-    if (!AXES.has(item.axis)) problems.push(`${item.id}: unknown axis ${item.axis}`);
-    if (item.question.trim().length === 0) problems.push(`${item.id}: empty question`);
-    if (item.notes.trim().length === 0) problems.push(`${item.id}: no determinism note`);
-
-    const declared = Object.keys(item.schema.properties);
-    if (declared.length === 0) problems.push(`${item.id}: schema has no fields`);
-    if (declared.join(" ") !== item.schema.required.join(" ")) {
-      problems.push(`${item.id}: schema.required does not match schema.properties`);
-    }
-    if (Object.keys(item.expected).join(" ") !== declared.join(" ")) {
-      problems.push(`${item.id}: expected keys do not match the schema`);
-    }
-    if (item.fields) {
-      const named = Object.keys(item.fields);
-      if (named.join(" ") !== declared.join(" ")) {
-        problems.push(`${item.id}: fields do not match the schema, one entry per field in schema order`);
+  const questionIds = new Set<string>();
+  for (const question of questions) {
+    const where = question.id;
+    if (questionIds.has(where)) problems.push(`duplicate question id ${where}`);
+    questionIds.add(where);
+    if (!FAMILY_SET.has(question.family)) problems.push(`${where}: unknown family ${question.family}`);
+    if (!TYPES.has(question.answer_type)) problems.push(`${where}: unknown answer type ${String(question.answer_type)}`);
+    if (question.question.trim().length === 0) problems.push(`${where}: empty question`);
+    if (question.notes.trim().length === 0) problems.push(`${where}: no note saying why the answer is the answer`);
+    if (!Array.isArray(question.traps)) problems.push(`${where}: traps is not a list`);
+    else {
+      for (const trap of question.traps) {
+        if (!TRAP_SET.has(trap)) problems.push(`${where}: unknown trap ${trap}`);
       }
-      if (!sameSet(goldDocIdsOf(item), item.gold_doc_ids)) {
-        problems.push(`${item.id}: gold_doc_ids is not the union of the per-field gold documents`);
-      }
+      if (new Set(question.traps).size !== question.traps.length) problems.push(`${where}: a trap is listed twice`);
     }
 
-    for (const field of declared) {
-      const type = item.schema.properties[field]?.type as FieldType;
-      if (!TYPES.has(type)) {
-        problems.push(`${item.id}.${field}: unknown type ${String(type)}`);
-        continue;
+    const gold = question.gold;
+    if (gold === null || typeof gold !== "object") {
+      problems.push(`${where}: no gold pack`);
+      continue;
+    }
+    if (gold.status !== "answered" && gold.status !== "not_in_evidence") {
+      problems.push(`${where}: gold status is ${String(gold.status)}`);
+    }
+    if (typeof gold.history_scored !== "boolean") problems.push(`${where}: history_scored must be stated as true or false`);
+    if (!Array.isArray(gold.sources)) problems.push(`${where}: gold sources is not a list`);
+    else {
+      for (const id of gold.sources) {
+        if (!docIds.has(id)) problems.push(`${where}: gold source ${id} does not exist`);
       }
-      const value = item.expected[field];
-      if (value !== null && !typeOf(value, type)) {
-        problems.push(`${item.id}.${field}: expected value does not match type ${type}`);
-      }
-
-      const meta = fieldMeta(item, field);
-      if (!AXES.has(meta.axis)) {
-        problems.push(`${item.id}.${field}: unknown axis ${meta.axis}`);
-        continue;
-      }
-      for (const gold of meta.gold_doc_ids) {
-        if (!docIds.has(gold)) problems.push(`${item.id}.${field}: gold doc ${gold} does not exist`);
-      }
-      if (meta.axis === "abstain") {
-        if (meta.gold_doc_ids.length !== 0) problems.push(`${item.id}.${field}: an abstain field must have no gold documents`);
-        if (value !== null) problems.push(`${item.id}.${field}: an abstain field expects null`);
-      } else {
-        if (meta.gold_doc_ids.length === 0) problems.push(`${item.id}.${field}: a ${meta.axis} field needs gold documents`);
-        if (value === null) problems.push(`${item.id}.${field}: a ${meta.axis} field cannot expect null`);
-      }
-      if (MULTI_DOC_AXES.has(meta.axis) && meta.gold_doc_ids.length < 2) {
-        problems.push(`${item.id}.${field}: a ${meta.axis} field needs at least two gold documents`);
-      }
+      if (new Set(gold.sources).size !== gold.sources.length) problems.push(`${where}: a gold source is listed twice`);
     }
 
-    for (const gold of item.gold_doc_ids) {
-      if (!docIds.has(gold)) problems.push(`${item.id}: gold doc ${gold} does not exist`);
+    const abstain = question.family === "abstain";
+    if (abstain !== (gold.status === "not_in_evidence")) {
+      problems.push(`${where}: an abstain question is exactly a question whose gold status is not_in_evidence`);
     }
-    if (item.axis === "abstain") {
-      if (item.gold_doc_ids.length !== 0) problems.push(`${item.id}: an abstain item must have no gold documents`);
-      if (Object.values(item.expected).some((value) => value !== null)) {
-        problems.push(`${item.id}: an abstain item expects only nulls`);
-      }
+    if (gold.status === "not_in_evidence") {
+      if (gold.value !== null) problems.push(`${where}: an abstain gold has a null value`);
+      if (gold.sources.length !== 0) problems.push(`${where}: an abstain gold cites nothing`);
+      if (gold.history.length !== 0) problems.push(`${where}: an abstain gold has an empty history`);
+      if (gold.history_scored) problems.push(`${where}: an abstain gold does not score history`);
     } else {
-      if (item.gold_doc_ids.length === 0) problems.push(`${item.id}: a non-abstain item needs gold documents`);
-      if (Object.values(item.expected).every((value) => value === null)) {
-        problems.push(`${item.id}: a non-abstain item cannot expect only nulls`);
+      if (gold.value === null) problems.push(`${where}: an answered gold needs a value`);
+      else if (!typeOf(gold.value, question.answer_type)) {
+        problems.push(`${where}: gold value does not match answer type ${question.answer_type}`);
+      }
+      if (gold.sources.length === 0) problems.push(`${where}: an answered gold needs at least one source`);
+      if (MULTI_DOC_FAMILIES.has(question.family) && gold.sources.length < 2) {
+        problems.push(`${where}: a ${question.family} question needs at least two gold sources`);
       }
     }
-  }
 
-  // Twins come last: they reference a case, and the case has to exist and to ask
-  // the same field on the same axis, or the twin gap is comparing two different
-  // questions rather than one question in two settings.
-  const byId = new Map(items.map((item) => [item.id, item]));
-  for (const item of items) {
-    if (item.twin_of === undefined) continue;
-    const twinned = byId.get(item.twin_of);
-    if (!twinned) {
-      problems.push(`${item.id}: twin_of ${item.twin_of} does not exist`);
-      continue;
-    }
-    if (twinned.twin_of !== undefined) problems.push(`${item.id}: twin_of points at another twin`);
-    const names = item.schema.required;
-    if (names.length !== 1) {
-      problems.push(`${item.id}: a twin asks exactly one field, this one asks ${names.length}`);
-      continue;
-    }
-    const name = names[0] as string;
-    if (!twinned.schema.required.includes(name)) {
-      problems.push(`${item.id}: ${item.twin_of} has no field ${name}`);
-      continue;
-    }
-    const here = fieldMeta(item, name);
-    const there = fieldMeta(twinned, name);
-    if (here.axis !== there.axis) {
-      problems.push(`${item.id}.${name}: axis ${here.axis} but ${item.twin_of}.${name} is ${there.axis}`);
-    }
-    if (!sameSet(here.gold_doc_ids, there.gold_doc_ids)) {
-      problems.push(`${item.id}.${name}: gold documents differ from ${item.twin_of}.${name}`);
-    }
-    if (JSON.stringify(item.expected[name] ?? null) !== JSON.stringify(twinned.expected[name] ?? null)) {
-      problems.push(`${item.id}.${name}: expected value differs from ${item.twin_of}.${name}`);
+    if (!Array.isArray(gold.history)) {
+      problems.push(`${where}: gold history is not a list`);
+    } else if (gold.history_scored) {
+      if (gold.history.length < MIN_CHAIN_STEPS) {
+        problems.push(`${where}: a scored chain needs ${MIN_CHAIN_STEPS} steps or more, this one has ${gold.history.length}`);
+      }
+      const dates = gold.history.map((step) => step.from);
+      for (const step of gold.history) {
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(step.from)) problems.push(`${where}: history step from "${step.from}" is not YYYY-MM-DD`);
+        if (step.value === null) problems.push(`${where}: a history step has a null value`);
+        else if (!typeOf(step.value, question.answer_type)) {
+          problems.push(`${where}: a history step value does not match answer type ${question.answer_type}`);
+        }
+      }
+      for (let i = 1; i < dates.length; i += 1) {
+        if ((dates[i] ?? "") < (dates[i - 1] ?? "")) problems.push(`${where}: history is not oldest first`);
+      }
+      const keys = gold.history.map((step) => `${step.from}=>${JSON.stringify(step.value)}`);
+      if (new Set(keys).size !== keys.length) problems.push(`${where}: history repeats a step`);
+      const values = gold.history.map((step) => JSON.stringify(step.value));
+      for (let i = 1; i < values.length; i += 1) {
+        if (values[i] === values[i - 1]) problems.push(`${where}: history has the same value twice in a row, which is not a change`);
+      }
+      const last = gold.history[gold.history.length - 1];
+      if (question.family === "current" && last && JSON.stringify(last.value) !== JSON.stringify(gold.value)) {
+        problems.push(`${where}: a current question answers the newest step of its own chain`);
+      }
+    } else if (gold.history.length !== 0) {
+      problems.push(`${where}: history_scored is false, so history must be empty`);
     }
   }
 
   return problems;
+}
+
+/**
+ * Every gold value has to be readable in the text of its own gold sources, and
+ * every `from` date has to be on or after the document that states that step.
+ * An aggregation answer is exempt from the first: it is arithmetic over several
+ * documents and is not meant to appear anywhere as a literal. So is a boolean,
+ * and so is a temporal answer, which is arithmetic on dates.
+ */
+export function validateGrounding(docs: Doc[], questions: Question[], aliases: Aliases): string[] {
+  const problems: string[] = [];
+  const byId = new Map(docs.map((doc) => [doc.id, doc]));
+  const searchable = new Map(
+    docs.map((doc) => [
+      doc.id,
+      baseNormalize([doc.id, doc.type, doc.channel ?? "", doc.project ?? "", doc.parent_id ?? "", doc.title ?? "", doc.author, doc.created_at, doc.text].join(" ")) ?? "",
+    ]),
+  );
+
+  const exempt = new Set<Family>(["aggregation", "temporal", "abstain"]);
+  for (const question of questions) {
+    const gold = question.gold;
+    if (!exempt.has(question.family) && question.answer_type !== "boolean" && gold.value !== null) {
+      const haystack = gold.sources.map((id) => searchable.get(id) ?? "").join(" ");
+      for (const needle of needlesOf(gold.value, question.answer_type, aliases)) {
+        if (!haystack.includes(needle)) {
+          problems.push(`${question.id}: gold value "${needle}" is not literally in its gold sources`);
+        }
+      }
+    }
+    if (!gold.history_scored) continue;
+    for (const step of gold.history) {
+      const stating = gold.sources
+        .map((id) => byId.get(id))
+        .filter((doc): doc is Doc => doc !== undefined)
+        .filter((doc) => {
+          const haystack = searchable.get(doc.id) ?? "";
+          return needlesOf(step.value, question.answer_type, aliases).every((needle) => haystack.includes(needle));
+        });
+      if (stating.length === 0) {
+        problems.push(`${question.id}: history step ${step.from} is stated by none of the gold sources`);
+        continue;
+      }
+      // The step takes effect on or after the first gold source that states it.
+      const earliest = stating.map((doc) => doc.created_at.slice(0, 10)).sort()[0] ?? "";
+      if (step.from < earliest) {
+        problems.push(`${question.id}: history step ${step.from} is dated before ${earliest}, the document that states it`);
+      }
+    }
+  }
+  return problems;
+}
+
+function needlesOf(value: AnswerValue, type: AnswerType, aliases: Aliases): string[] {
+  const normalized = normalizeField(value, type, aliases);
+  if (normalized.value === null) return [];
+  return Array.isArray(normalized.value) ? normalized.value.map(String) : [String(normalized.value)];
+}
+
+export interface Coverage {
+  perFamily: Record<Family, number>;
+  perTrap: Record<Trap, number>;
+  historyScored: number;
+}
+
+export function coverageOf(questions: Question[]): Coverage {
+  const perFamily = Object.fromEntries(FAMILIES.map((family) => [family, 0])) as Record<Family, number>;
+  const perTrap = Object.fromEntries(TRAPS.map((trap) => [trap, 0])) as Record<Trap, number>;
+  let historyScored = 0;
+  for (const question of questions) {
+    if (perFamily[question.family] !== undefined) perFamily[question.family] += 1;
+    for (const trap of question.traps) if (perTrap[trap] !== undefined) perTrap[trap] += 1;
+    if (question.gold.history_scored) historyScored += 1;
+  }
+  return { perFamily, perTrap, historyScored };
+}
+
+export function validateCoverage(questions: Question[]): string[] {
+  const coverage = coverageOf(questions);
+  const problems: string[] = [];
+  for (const family of FAMILIES) {
+    const count = coverage.perFamily[family];
+    if (count < MIN_PER_FAMILY) problems.push(`family ${family} has ${count} questions, the floor is ${MIN_PER_FAMILY}`);
+  }
+  for (const trap of TRAPS) {
+    const count = coverage.perTrap[trap];
+    if (count < MIN_PER_TRAP) problems.push(`trap ${trap} has ${count} questions, the floor is ${MIN_PER_TRAP}`);
+  }
+  if (coverage.historyScored < MIN_HISTORY_SCORED) {
+    problems.push(`${coverage.historyScored} questions score a history chain, the floor is ${MIN_HISTORY_SCORED}`);
+  }
+  return problems;
+}
+
+export interface GuaranteeMiss {
+  questionId: string;
+  family: Family;
+  missing: string[];
+  retrieved: number;
+}
+
+export interface GuaranteeReport {
+  checked: number;
+  met: number;
+  misses: GuaranteeMiss[];
+}
+
+/**
+ * THE GUARANTEE. Run the frozen retrieval for every question and record any gold
+ * source with no chunk in the window. A miss is fixed by rewriting the document
+ * or the question until the two share the vocabulary a real record would share,
+ * never by adding a retrieval step.
+ */
+export function checkGuarantee(
+  questions: Question[],
+  retriever: Retriever,
+  queryVectors: Map<string, ArrayLike<number>>,
+  params: RetrievalParams,
+): GuaranteeReport {
+  let checked = 0;
+  let met = 0;
+  const misses: GuaranteeMiss[] = [];
+  for (const question of questions) {
+    if (question.gold.sources.length === 0) continue;
+    checked += 1;
+    const retrieved = retriever.retrieve(question.question, queryVectors.get(question.id), params);
+    const docIds = new Set(retrieved.map((entry) => entry.chunk.doc_id));
+    const missing = question.gold.sources.filter((id) => !docIds.has(id));
+    if (missing.length === 0) met += 1;
+    else misses.push({ questionId: question.id, family: question.family, missing, retrieved: docIds.size });
+  }
+  return { checked, met, misses };
 }
