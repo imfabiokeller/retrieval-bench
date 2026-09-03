@@ -33,6 +33,7 @@ beside them.
 | model | fields | overall | entities | facts | supersession | conflict | abstain | asof | join | exhaustive | aggregation | cases | case fully correct | acc given retrieval hit | retries | mean latency ms | p95 latency ms | mean ttft ms | tokens in | tokens out | tokens reasoning | run cost |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | oracle | 468 | 100.0% | 100.0% (n=59) | 100.0% (n=42) | 100.0% (n=51) | 100.0% (n=53) | 100.0% (n=69) | 100.0% (n=52) | 100.0% (n=49) | 100.0% (n=50) | 100.0% (n=43) | 123 | 100.0% | 100.0% | 0 | 8 | 9 | 5 | 0 | 0 | 0 | $0.0000 |
+| deepseek-v4-flash | 468 | 63.7% | 72.9% (n=59) | 61.9% (n=42) | 66.7% (n=51) | 79.2% (n=53) | 97.1% (n=69) | 36.5% (n=52) | 42.9% (n=49) | 44.0% (n=50) | 55.8% (n=43) | 123 | 25.2% | 65.4% | 1 | 950 | 1364 | 722 | 172102 | 4030 | 0 | $0.0670 |
 | null | 468 | 14.7% | 0.0% (n=59) | 0.0% (n=42) | 0.0% (n=51) | 0.0% (n=53) | 100.0% (n=69) | 0.0% (n=52) | 0.0% (n=49) | 0.0% (n=50) | 0.0% (n=43) | 123 | 3.3% | 0.0% | 0 | 8 | 9 | 5 | 0 | 0 | 0 | $0.0000 |
 
 Corpus version **v2**, pipeline hash `f7bbdd5fe0812c4d`, prompt hash `1c5c35327076c6b6`, top 12 chunks. Rows are only comparable when all of those match.
@@ -44,6 +45,7 @@ Scored with scorer hash `623dc719c2a745bb`. Every row is re-scored at report tim
 Twin gap. A twin asks one hard field of a case on its own, with the same gold documents and the same expected value, so the difference is what the rest of the case costs:
 
 - `oracle`: 100.0% on the 33 twin fields, 100.0% on the same fields inside their cases, +0.0 points.
+- `deepseek-v4-flash`: 45.5% on the 33 twin fields, 42.4% on the same fields inside their cases, +3.0 points.
 - `null`: 0.0% on the 33 twin fields, 0.0% on the same fields inside their cases, +0.0 points.
 
 Retrieval hit rate for this corpus version: **88.5%** of the 399 fields that have gold documents. A field is a hit when at least one retrieved chunk comes from one of that field's own gold documents. It is a property of the frozen pipeline, not of any model, so it is the same for every row. Abstain fields have no gold documents and are excluded from that denominator.
@@ -53,6 +55,7 @@ Per axis: entities 86.4% (n=59), facts 78.6% (n=42), supersession 66.7% (n=51), 
 Every run uses temperature 0 and a 512 token output budget unless the model rejects one of those, in which case models.json records the override:
 
 - `oracle`: temperature 0, max output tokens 512, 0 call errors.
+- `deepseek-v4-flash`: temperature 0, max output tokens 512, 0 call errors.
 - `null`: temperature 0, max output tokens 512, 0 call errors.
 
 <!-- LEADERBOARD:v2:END -->
