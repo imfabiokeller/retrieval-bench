@@ -36,17 +36,11 @@ Every run uses temperature 0 and a 512 token output budget unless the model reje
 
 <!-- LEADERBOARD:END -->
 
-The `oracle` and `null` rows are the offline mocks, not models: they are there to
-show the harness measures what it claims to. The oracle at 100% says the scorer
-accepts a correct answer on every axis; the null model at 19.6% says the abstain
-axis is exactly the 40 items it should be and nothing else is free.
-
-`deepseek-v4-flash` is the one real row so far. Its shape is the shape the
-benchmark is built to expose: `entities` is solved, and the two axes that need
-the model to prefer a later dated correction over a louder earlier statement,
-`supersession` and `conflict`, are the two that slip. Its 9 retries are items
-where the model spent the whole 512 token output budget on reasoning and returned
-no text, which the results record as `finish_reason: length` with an empty output.
+`oracle` and `null` are offline mocks rather than models: the oracle returns the
+gold object for every item and the null model returns nulls. They are the
+harness checking itself, so read every other row against them: the oracle has to
+be at 100% on every axis or the scorer is broken, and the null model has to be at
+100% on abstain and 0% everywhere else or the abstain axis is free points.
 
 ## Try it without an API key
 
@@ -55,16 +49,11 @@ models are offline mocks, so the whole harness runs with no key and no network:
 
 ```bash
 npm install
-npm test                                             # 62 tests, no key needed
+npm test                                             # 91 tests, no key needed
 npm run bench -- --version v1 --model oracle         # returns the gold object: must score 100%
 npm run bench -- --version v1 --model null           # returns all nulls: the abstain baseline
 npm run report -- --version v1                       # regenerates the CSV and the leaderboard
 ```
-
-The oracle is how you check the harness rather than the model: if it is not at
-100% on every axis, the scorer is broken. The null model is how you check the
-abstain axis is not free points: it scores 100% on abstain and 0% everywhere
-else.
 
 ## Run a real model
 
@@ -208,7 +197,8 @@ the planted structures without giving the answers away.
 ## The pipeline
 
 Fixed for the life of a corpus version. Its source files are hashed into
-`pipeline_hash`, which is recorded on every run.
+`pipeline_hash`, which is recorded on every run. The scorer is deliberately not
+part of that hash: see [Versioning](#versioning).
 
 **Ingest.** Each document becomes one or more chunks. A Slack message is always
 exactly one chunk; anything longer is packed onto sentence boundaries at a 500
@@ -238,10 +228,10 @@ attributed to.
 
 **Query.** Two ranked lists over the same chunks: Okapi BM25 (k1 = 1.5, b = 0.75)
 over the chunk text, and cosine over the committed vectors. They are fused with
-Reciprocal Rank Fusion at k = 60, given a soft recency boost of 0.1 RRF units
-across the corpus timeline, capped at 2 chunks per document, and cut to the top
-8. There is no LLM rerank: selection among the 8 is folded into the single
-extraction call.
+Reciprocal Rank Fusion at k = 60, given a soft recency boost worth at most a
+tenth of one rank-1 RRF contribution and scaled across the corpus timeline,
+capped at 2 chunks per document, and cut to the top 8. There is no LLM rerank:
+selection among the 8 is folded into the single extraction call.
 
 | parameter | value |
 | --- | --- |
@@ -311,6 +301,10 @@ equal the gold value. A reply that could not be parsed into an object at all is
 incorrect on every field, abstain items included: refusing to emit JSON is not
 the same as answering null.
 
+None of this is frozen the way the corpus and the prompt are. Every stored run is
+re-scored with the current rules when the report runs, and the rules in force are
+fingerprinted as `scorer_hash`.
+
 ## Cost cap and the arithmetic
 
 Before a run the harness estimates input tokens as characters over four across
@@ -320,37 +314,36 @@ refuses to start unless you pass `--force`. Actual cost is computed from the
 token counts the provider reports, not from the estimate, and both go into
 `run.json`.
 
-The measured numbers for corpus v1, all 204 items:
+The projection for corpus v1, all 204 items:
 
-- 164,448 estimated input tokens in total, which is **806 tokens per item**
-  including the system prompt. Roughly 350 of those are the system prompt and
-  the schema, and the rest is the 8 retrieved chunks with their metadata.
-- 104,448 output tokens at the 512 token ceiling, which is the worst case. The
-  full `deepseek-v4-flash` run actually emitted 25,953 output tokens, 127 per
-  item.
+- 167,302 estimated input tokens in total, which is **820 tokens per item**
+  including the system prompt. 292 of those are the system prompt, and the rest
+  is the item schema plus the 8 retrieved chunks with their metadata.
+- 104,448 output tokens, which is 204 items at the 512 token ceiling. That is the
+  worst case by construction: a model that answers with the object and stops uses
+  a small fraction of it, and the gap between the projection and the actual cost
+  in `run.json` is that fraction.
 - The most expensive model in `models.json` is `claude-opus-5` at $5.00 per
   million input tokens and $25.00 per million output tokens. That projects to
-  164,448 × $5 / 1e6 = **$0.82** of input plus 104,448 × $25 / 1e6 = **$2.61** of
-  output, so **$3.43** for a full run, under the cap.
-- At the observed output length rather than the ceiling, the same run costs
-  $0.82 + 25,953 × $25 / 1e6 = about **$1.47**. The projection is deliberately
-  the pessimistic number, so the cap is never a surprise: the `deepseek-v4-flash`
-  run projected $0.2102 and actually cost $0.0863.
+  167,302 × $5 / 1e6 = **$0.84** of input plus 104,448 × $25 / 1e6 = **$2.61** of
+  output, so **$3.45** for a full run, under the cap. `deepseek-v4-flash`, the
+  cheapest priced model here, projects to **$0.21**.
 
-Since the projection for every model in `models.json` fits under the cap, no
-reduction to `top_n` or the chunk size was needed.
+Every priced model in `models.json` projects under the cap, so no reduction to
+`top_n` or the chunk size was needed.
 
-Building the index is the only other spend, a few cents of `gemini-embedding-001`
-for 120 chunks and 204 questions, and it is committed so nobody has to repeat it.
+Building the index is the only other spend: `gemini-embedding-001` over 120
+chunks and 204 questions. The provider reported no embedding token usage, so
+`corpus/v1/index/meta.json` records `embedding_tokens: null` rather than a guess.
+The index is committed, so nobody has to repeat that spend either.
 
 ## Versioning
 
-A result belongs to the tuple **corpus + embeddings + prompt + pipeline code**.
-All four are recorded on every run: `corpus_version`, and the embedding model
-inside `corpus/v1/index/meta.json`, plus `prompt_hash` and `pipeline_hash` in
-`run.json`.
-
-Three fingerprints, because the three things they cover fail differently:
+A result belongs to the tuple **corpus + embeddings + prompt + pipeline code +
+scorer**. The corpus version and the embedding model are recorded as
+`corpus_version` in `run.json` and inside `corpus/v1/index/meta.json`. The other
+three are hashes, and they are three rather than one because the things they
+cover fail differently:
 
 | hash | covers | recorded |
 | --- | --- | --- |
