@@ -32,8 +32,8 @@ beside them.
 
 | model | fields | overall | entities | facts | supersession | conflict | abstain | asof | join | exhaustive | aggregation | cases | case fully correct | acc given retrieval hit | retries | mean latency ms | p95 latency ms | mean ttft ms | tokens in | tokens out | tokens reasoning | run cost |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| oracle | 468 | 100.0% | 100.0% (n=59) | 100.0% (n=42) | 100.0% (n=51) | 100.0% (n=53) | 100.0% (n=69) | 100.0% (n=52) | 100.0% (n=49) | 100.0% (n=50) | 100.0% (n=43) | 123 | 100.0% | 100.0% | 0 | 8 | 8 | 5 | 0 | 0 | 0 | $0.0000 |
-| null | 468 | 14.7% | 0.0% (n=59) | 0.0% (n=42) | 0.0% (n=51) | 0.0% (n=53) | 100.0% (n=69) | 0.0% (n=52) | 0.0% (n=49) | 0.0% (n=50) | 0.0% (n=43) | 123 | 3.3% | 0.0% | 0 | 8 | 8 | 5 | 0 | 0 | 0 | $0.0000 |
+| oracle | 468 | 100.0% | 100.0% (n=59) | 100.0% (n=42) | 100.0% (n=51) | 100.0% (n=53) | 100.0% (n=69) | 100.0% (n=52) | 100.0% (n=49) | 100.0% (n=50) | 100.0% (n=43) | 123 | 100.0% | 100.0% | 0 | 8 | 9 | 5 | 0 | 0 | 0 | $0.0000 |
+| null | 468 | 14.7% | 0.0% (n=59) | 0.0% (n=42) | 0.0% (n=51) | 0.0% (n=53) | 100.0% (n=69) | 0.0% (n=52) | 0.0% (n=49) | 0.0% (n=50) | 0.0% (n=43) | 123 | 3.3% | 0.0% | 0 | 8 | 9 | 5 | 0 | 0 | 0 | $0.0000 |
 
 Corpus version **v2**, pipeline hash `f7bbdd5fe0812c4d`, prompt hash `1c5c35327076c6b6`, top 12 chunks. Rows are only comparable when all of those match.
 
@@ -46,9 +46,9 @@ Twin gap. A twin asks one hard field of a case on its own, with the same gold do
 - `oracle`: 100.0% on the 33 twin fields, 100.0% on the same fields inside their cases, +0.0 points.
 - `null`: 0.0% on the 33 twin fields, 0.0% on the same fields inside their cases, +0.0 points.
 
-Retrieval hit rate for this corpus version: **88.2%** of the 399 fields that have gold documents. A field is a hit when at least one retrieved chunk comes from one of that field's own gold documents. It is a property of the frozen pipeline, not of any model, so it is the same for every row. Abstain fields have no gold documents and are excluded from that denominator.
+Retrieval hit rate for this corpus version: **88.5%** of the 399 fields that have gold documents. A field is a hit when at least one retrieved chunk comes from one of that field's own gold documents. It is a property of the frozen pipeline, not of any model, so it is the same for every row. Abstain fields have no gold documents and are excluded from that denominator.
 
-Per axis: entities 86.4% (n=59), facts 78.6% (n=42), supersession 66.7% (n=51), conflict 83.0% (n=53), asof 98.1% (n=52), join 100.0% (n=49), exhaustive 96.0% (n=50), aggregation 97.7% (n=43).
+Per axis: entities 86.4% (n=59), facts 78.6% (n=42), supersession 66.7% (n=51), conflict 83.0% (n=53), asof 98.1% (n=52), join 100.0% (n=49), exhaustive 96.0% (n=50), aggregation 100.0% (n=43).
 
 Every run uses temperature 0 and a 512 token output budget unless the model rejects one of those, in which case models.json records the override:
 
@@ -420,7 +420,7 @@ with the parameters above:
 | version | fields with gold documents | hit rate |
 | --- | --- | --- |
 | v1 | 178 | 98.3% |
-| v2 | 399 | 88.2% |
+| v2 | 399 | 88.5% |
 
 v2's rate is deliberately not near 100%. Template noise and near-duplicate
 distractors were added until it landed between 85% and 90%, so that a leaderboard

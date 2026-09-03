@@ -172,7 +172,7 @@ nothing else.
 12, `rrf_k` 60, `recency_weight` 0.1, `max_chunks_per_doc` 2. They are part of the
 corpus version, not of the harness.
 
-With those parameters the retrieval hit rate is **88.2%** of the 399 fields that
+With those parameters the retrieval hit rate is **88.5%** of the 399 fields that
 have gold documents, which is a property of the pipeline and the corpus and not
 of any model. It is deliberately not near 100%: template noise and near-duplicate
 distractors were added until it landed between 85% and 90%, so that a leaderboard
