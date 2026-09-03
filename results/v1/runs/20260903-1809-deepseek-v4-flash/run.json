@@ -1,0 +1,32 @@
+{
+  "run_id": "20260903-1809-deepseek-v4-flash",
+  "model_name": "deepseek-v4-flash",
+  "provider": "openai-compatible",
+  "model_id": "deepseek-v4-flash",
+  "params": {
+    "top_n": 8,
+    "rrf_k": 60,
+    "recency_weight": 0.1,
+    "max_chunks_per_doc": 2,
+    "temperature": 0,
+    "max_tokens": 512
+  },
+  "corpus_version": "v1",
+  "pipeline_hash": "f7bbdd5fe0812c4d",
+  "prompt_hash": "1c5c35327076c6b6",
+  "git_commit": "0baab9653728d41a69295c9f3caea3ae4553df39",
+  "started_at": "2026-09-03T18:09:35.626Z",
+  "finished_at": "2026-09-03T18:12:31.049Z",
+  "item_count": 204,
+  "correct_count_at_run": 202,
+  "accuracy_at_run": 0.9901960784313726,
+  "retrieval_hit_rate": 0.9878048780487805,
+  "projected_cost_usd": 0.21148424000000005,
+  "actual_cost_usd": 0.05666732000000002,
+  "tokens_in": 178996,
+  "tokens_out": 1647,
+  "tokens_reasoning": 0,
+  "tokens_cached": 56960,
+  "errors": 0,
+  "retries": 0
+}

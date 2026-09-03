@@ -21,6 +21,7 @@ leaderboard from the files in `results/`.
 | model | items | overall | entities | facts | supersession | conflict | abstain | acc given retrieval hit | retries | mean latency ms | p95 latency ms | mean ttft ms | tokens in | tokens out | tokens reasoning | run cost |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | oracle | 204 | 100.0% | 100.0% (n=40) | 100.0% (n=41) | 100.0% (n=42) | 100.0% (n=41) | 100.0% (n=40) | 100.0% | 0 | 8 | 9 | 5 | 0 | 0 | 0 | $0.0000 |
+| deepseek-v4-flash | 204 | 99.0% | 97.5% (n=40) | 100.0% (n=41) | 97.6% (n=42) | 100.0% (n=41) | 100.0% (n=40) | 99.4% | 0 | 859 | 1276 | 723 | 178996 | 1647 | 0 | $0.0567 |
 | null | 204 | 19.6% | 0.0% (n=40) | 0.0% (n=41) | 0.0% (n=42) | 0.0% (n=41) | 100.0% (n=40) | 0.0% | 0 | 8 | 9 | 5 | 0 | 0 | 0 | $0.0000 |
 
 Corpus version **v1**, pipeline hash `f7bbdd5fe0812c4d`, prompt hash `1c5c35327076c6b6`. Rows are only comparable when all three match.
@@ -32,6 +33,7 @@ Retrieval hit rate for this corpus version: **98.8%** of the 164 items that have
 Every run uses temperature 0 and a 512 token output budget unless the model rejects one of those, in which case models.json records the override:
 
 - `oracle`: temperature 0, max output tokens 512, 0 call errors.
+- `deepseek-v4-flash`: temperature 0, max output tokens 512, 0 call errors.
 - `null`: temperature 0, max output tokens 512, 0 call errors.
 
 <!-- LEADERBOARD:END -->
