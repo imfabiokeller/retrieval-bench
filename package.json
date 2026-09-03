@@ -1,0 +1,25 @@
+{
+  "name": "retrieval-bench",
+  "version": "1.0.0",
+  "private": false,
+  "description": "A leaderboard of LLMs on one question: given a fixed retrieval pipeline over a frozen corpus, how reliably does a model turn retrieved evidence into a correct structured object?",
+  "license": "MIT",
+  "author": "Fabio Keller",
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "build-index": "tsx src/bin/build-index.ts",
+    "bench": "tsx src/bin/bench.ts",
+    "report": "tsx src/bin/report.ts",
+    "validate": "tsx src/bin/validate.ts",
+    "test": "tsx --test test/*.test.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}
