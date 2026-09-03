@@ -24,7 +24,7 @@ function item(id: string, axis: Axis, correct: boolean, overrides: Partial<ItemR
     raw_output: '{"value": 1}',
     parsed: { value: 1 },
     expected: { value: 1 },
-    fields: [{ field: "value", expected: 1, got: correct ? 1 : 2, correct }],
+    fields: [{ field: "value", axis, expected: 1, got: correct ? 1 : 2, correct, retrieval_hit: axis === "abstain" ? null : true }],
     correct,
     latency_ms: 100,
     ttft_ms: 40,

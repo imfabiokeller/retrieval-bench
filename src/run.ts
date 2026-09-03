@@ -8,6 +8,7 @@
 import { streamText } from "ai";
 import type { LanguageModel } from "ai";
 import { costUsd } from "./cost.js";
+import { goldDocIdsOf } from "./fields.js";
 import type { ModelEntry } from "./models.js";
 import type { Aliases } from "./normalize.js";
 import { parseObject } from "./parse.js";
@@ -112,7 +113,8 @@ export async function runItem(context: RunItemContext, item: Item): Promise<Item
   }
   const latencyMs = Date.now() - started;
 
-  const scored = scoreItem(item, parsed, context.aliases);
+  const retrievedDocIds = [...new Set(retrieved.map((entry) => entry.chunk.doc_id))];
+  const scored = scoreItem(item, parsed, context.aliases, retrievedDocIds);
   const tokensIn = outcome.tokensIn ?? 0;
   const tokensOut = outcome.tokensOut ?? 0;
   const tokensCached = outcome.tokensCached ?? 0;
@@ -122,8 +124,8 @@ export async function runItem(context: RunItemContext, item: Item): Promise<Item
     axis: item.axis,
     question: item.question,
     retrieved_chunk_ids: retrieved.map((entry) => entry.chunk.id),
-    retrieved_doc_ids: [...new Set(retrieved.map((entry) => entry.chunk.doc_id))],
-    retrieval_hit: retrievalHit(retrieved, item.gold_doc_ids),
+    retrieved_doc_ids: retrievedDocIds,
+    retrieval_hit: retrievalHit(retrieved, goldDocIdsOf(item)),
     prompt,
     raw_output: outcome.text,
     parsed,

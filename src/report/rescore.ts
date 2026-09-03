@@ -4,10 +4,12 @@
 // table, and the item schemas come from the corpus rather than from the run.
 //
 // What is replayable and what is not: the reply is stored, so parsing and
-// scoring can be redone. The retrieval is not stored beyond the chunk ids, so
-// retrieval_hit, latency, tokens and cost are left exactly as the run recorded
-// them, and pipeline_hash is what says whether they are comparable.
+// scoring can be redone, and so are the retrieval hit flags, because the
+// retrieved document ids are stored and the gold documents come from the
+// corpus. Latency, tokens and cost are left exactly as the run recorded them,
+// and pipeline_hash is what says whether they are comparable.
 
+import { goldDocIdsOf } from "../fields.js";
 import { parseObject } from "../parse.js";
 import { scoreItem } from "../score.js";
 import type { Aliases } from "../normalize.js";
@@ -36,14 +38,17 @@ export function rescoreItems(stored: ItemResult[], corpus: Map<string, Item>, al
     // Exactly what the runner did: a call that errored has no answer to parse,
     // whatever partial text it left behind.
     const parsed = result.error === null ? parseObject(result.raw_output) : null;
-    const scored = scoreItem(item, parsed, aliases);
+    const scored = scoreItem(item, parsed, aliases, result.retrieved_doc_ids);
     if (scored.correct !== result.correct) changed += 1;
+    const gold = goldDocIdsOf(item);
     items.push({
       ...result,
       parsed,
       expected: item.expected,
       fields: scored.fields,
       correct: scored.correct,
+      retrieval_hit:
+        gold.length === 0 ? null : gold.some((id) => result.retrieved_doc_ids.includes(id)),
     });
   }
 

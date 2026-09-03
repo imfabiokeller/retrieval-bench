@@ -28,7 +28,7 @@ function stored(overrides: Partial<ItemResult>): ItemResult {
     raw_output: '{"mode":"compliance mode"}',
     parsed: { mode: "compliance mode" },
     expected: { mode: "compliance" },
-    fields: [{ field: "mode", expected: "compliance", got: "compliance mode", correct: false }],
+    fields: [{ field: "mode", axis: "facts", expected: "compliance", got: "compliance mode", correct: false, retrieval_hit: true }],
     correct: false,
     latency_ms: 1200,
     ttft_ms: 400,
@@ -66,7 +66,7 @@ test("a time answer stored with its zone word scores under the time type", () =>
     raw_output: '{"start_utc":"09:41 UTC"}',
     parsed: { start_utc: "09:41 UTC" },
     expected: { start_utc: "09:41" },
-    fields: [{ field: "start_utc", expected: "09:41", got: "09:41 utc", correct: false }],
+    fields: [{ field: "start_utc", axis: "facts", expected: "09:41", got: "09:41 utc", correct: false, retrieval_hit: true }],
     correct: false,
   });
   const result = rescoreItems([timed], corpus, aliases);
@@ -104,7 +104,7 @@ test("an empty reply is unparseable and stays incorrect", () => {
 
 test("pipeline_hash covers retrieval only and scorer_hash covers scoring only", () => {
   assert.deepEqual(PIPELINE_SOURCES, ["src/bm25.ts", "src/chunk.ts", "src/retrieve.ts", "src/rrf.ts"]);
-  assert.deepEqual(SCORER_SOURCES, ["src/parse.ts", "src/normalize.ts", "src/score.ts"]);
+  assert.deepEqual(SCORER_SOURCES, ["src/parse.ts", "src/normalize.ts", "src/score.ts", "src/fields.ts"]);
   const overlap = PIPELINE_SOURCES.filter((source) => SCORER_SOURCES.includes(source));
   assert.deepEqual(overlap, [], "a file belongs to one fingerprint or the other, never both");
   assert.match(pipelineHash(), /^[0-9a-f]{16}$/);

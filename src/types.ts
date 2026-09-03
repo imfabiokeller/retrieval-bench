@@ -25,18 +25,52 @@ export interface ItemSchema {
   additionalProperties: false;
 }
 
-export type Axis = "entities" | "facts" | "supersession" | "conflict" | "abstain";
+export type Axis =
+  | "entities"
+  | "facts"
+  | "supersession"
+  | "conflict"
+  | "abstain"
+  | "asof"
+  | "join"
+  | "exhaustive"
+  | "aggregation";
 
 export type FieldValue = string | number | boolean | string[] | null;
 
+/**
+ * What one field of a case is being asked to do, and which documents support
+ * it. Kept out of `schema` on purpose: the schema is rendered into the prompt,
+ * and neither the axis nor the gold documents may reach the model.
+ */
+export interface FieldMeta {
+  axis: Axis;
+  gold_doc_ids: string[];
+}
+
+/**
+ * One question, one retrieval, one model call, one object. Every field carries
+ * its own axis and its own gold documents in `fields`.
+ *
+ * A v1 item has no `fields`: its fields all inherit the item-level `axis` and
+ * `gold_doc_ids`, which is what keeps v1 items valid and v1 runs re-scorable.
+ * Resolve a field with `fieldMeta()` in fields.ts rather than reading either
+ * shape directly.
+ */
 export interface Item {
   id: string;
+  /** The case-level axis. With per-field axes it is the headline, not the score. */
   axis: Axis;
   question: string;
   schema: ItemSchema;
   expected: Record<string, FieldValue>;
+  /** The union of the per-field gold documents when `fields` is present. */
   gold_doc_ids: string[];
   notes: string;
+  /** Per-field axis and gold documents. Absent in v1. */
+  fields?: Record<string, FieldMeta>;
+  /** Set on a single-field twin item: the id of the case that asks the same field among others. */
+  twin_of?: string;
 }
 
 export interface Chunk {
@@ -89,9 +123,13 @@ export interface Retrieved {
 
 export interface FieldResult {
   field: string;
+  /** The field's own axis, which is what the per-axis leaderboard numbers count. */
+  axis: Axis;
   expected: FieldValue;
   got: FieldValue;
   correct: boolean;
+  /** Whether any retrieved chunk came from one of this field's gold documents. Null when it has none. */
+  retrieval_hit: boolean | null;
 }
 
 export interface ItemResult {

@@ -23,7 +23,7 @@ import { REPO_ROOT } from "./corpus.js";
 export const PIPELINE_SOURCES = ["src/bm25.ts", "src/chunk.ts", "src/retrieve.ts", "src/rrf.ts"];
 
 /** Scoring only: how a stored reply becomes a score. Changing one of these re-scores every run. */
-export const SCORER_SOURCES = ["src/parse.ts", "src/normalize.ts", "src/score.ts"];
+export const SCORER_SOURCES = ["src/parse.ts", "src/normalize.ts", "src/score.ts", "src/fields.ts"];
 
 export function sha256(text: string): string {
   return createHash("sha256").update(text).digest("hex");
