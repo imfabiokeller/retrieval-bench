@@ -59,6 +59,15 @@ async function runModel(entry: ModelEntry, items: Item[], options: Options): Pro
     return;
   }
 
+  let modelFor;
+  try {
+    modelFor = createModelFactory(entry).forItem;
+  } catch (error) {
+    // A missing key skips this model rather than aborting a --model all run.
+    console.log(`skipping ${entry.name}: ${error instanceof Error ? error.message : String(error)}`);
+    return;
+  }
+
   const index = loadIndex(options.version);
   const aliases = loadAliases(options.version);
   const retriever = new Retriever(index.chunks, index.chunkVectors);
@@ -69,7 +78,7 @@ async function runModel(entry: ModelEntry, items: Item[], options: Options): Pro
     aliases,
     entry,
     params,
-    modelFor: createModelFactory(entry).forItem,
+    modelFor,
   };
 
   const prompts = items.map((item) => renderPrompt(item, retrieveFor(context, item, params)));
