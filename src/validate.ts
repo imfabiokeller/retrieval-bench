@@ -175,9 +175,14 @@ export function validateStructure(docs: Doc[], questions: Question[]): string[] 
 /**
  * Every gold value has to be readable in the text of its own gold sources, and
  * every `from` date has to be on or after the document that states that step.
- * An aggregation answer is exempt from the first: it is arithmetic over several
- * documents and is not meant to appear anywhere as a literal. So is a boolean,
- * and so is a temporal answer, which is arithmetic on dates.
+ *
+ * Four things are exempt from the literal check, because their answer is derived
+ * rather than quoted: an aggregation answer is arithmetic over several
+ * documents, a temporal answer is arithmetic on dates, a rule answer is a policy
+ * applied to a fact, and a boolean is a yes or a no that no document writes as
+ * "true". A question carrying the `relative_date` trap is exempt for the same
+ * reason: the document says "next Tuesday" and the date is what that resolves
+ * to. An abstain question has nothing to ground.
  */
 export function validateGrounding(docs: Doc[], questions: Question[], aliases: Aliases): string[] {
   const problems: string[] = [];
@@ -189,13 +194,14 @@ export function validateGrounding(docs: Doc[], questions: Question[], aliases: A
     ]),
   );
 
-  const exempt = new Set<Family>(["aggregation", "temporal", "abstain"]);
+  const exempt = new Set<Family>(["aggregation", "temporal", "rule", "abstain"]);
   for (const question of questions) {
     const gold = question.gold;
-    if (!exempt.has(question.family) && question.answer_type !== "boolean" && gold.value !== null) {
+    const derived = exempt.has(question.family) || question.answer_type === "boolean" || question.traps.includes("relative_date");
+    if (!derived && gold.value !== null) {
       const haystack = gold.sources.map((id) => searchable.get(id) ?? "").join(" ");
       for (const needle of needlesOf(gold.value, question.answer_type, aliases)) {
-        if (!haystack.includes(needle)) {
+        if (!formsOf(needle, question.answer_type).some((form) => haystack.includes(form))) {
           problems.push(`${question.id}: gold value "${needle}" is not literally in its gold sources`);
         }
       }
@@ -207,7 +213,9 @@ export function validateGrounding(docs: Doc[], questions: Question[], aliases: A
         .filter((doc): doc is Doc => doc !== undefined)
         .filter((doc) => {
           const haystack = searchable.get(doc.id) ?? "";
-          return needlesOf(step.value, question.answer_type, aliases).every((needle) => haystack.includes(needle));
+          return needlesOf(step.value, question.answer_type, aliases).every((needle) =>
+            formsOf(needle, question.answer_type).some((form) => haystack.includes(form)),
+          );
         });
       if (stating.length === 0) {
         problems.push(`${question.id}: history step ${step.from} is stated by none of the gold sources`);
@@ -223,10 +231,48 @@ export function validateGrounding(docs: Doc[], questions: Question[], aliases: A
   return problems;
 }
 
+const MONTH_NAMES = [
+  "january", "february", "march", "april", "may", "june",
+  "july", "august", "september", "october", "november", "december",
+];
+
+/**
+ * The ways a normalized value is written by a person. A date is the one that
+ * matters: records write "2027-05-18" and people write "18 May 2027", and both
+ * are the same date being stated once.
+ */
+function formsOf(needle: string, type: AnswerType): string[] {
+  if (type === "date") {
+    const match = needle.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!match) return [needle];
+    const [, year, month, day] = match;
+    const name = MONTH_NAMES[Number(month) - 1] ?? "";
+    const plainDay = String(Number(day));
+    return [
+      needle,
+      `${plainDay} ${name} ${year}`,
+      `${name} ${plainDay} ${year}`,
+      `${name} ${plainDay}`,
+      `${plainDay}.${month}.${year}`,
+      `${plainDay}. ${name} ${year}`,
+    ];
+  }
+  if (type === "time") {
+    const match = needle.match(/^(\d{2}):(\d{2})$/);
+    if (!match) return [needle];
+    return [needle, `${Number(match[1])}:${match[2]}`];
+  }
+  return [needle];
+}
+
 function needlesOf(value: AnswerValue, type: AnswerType, aliases: Aliases): string[] {
   const normalized = normalizeField(value, type, aliases);
   if (normalized.value === null) return [];
-  return Array.isArray(normalized.value) ? normalized.value.map(String) : [String(normalized.value)];
+  const parts = Array.isArray(normalized.value) ? normalized.value.map(String) : [String(normalized.value)];
+  // Alias resolution returns the canonical spelling, which is not lowercased.
+  // The haystack is, so both sides go through the same base form before the
+  // literal check compares them.
+  return parts.map((part) => baseNormalize(part) ?? part);
 }
 
 export interface Coverage {
