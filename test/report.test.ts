@@ -113,8 +113,9 @@ test("the retrieval hit rate excludes items with no gold documents", () => {
 
 test("the leaderboard renders a markdown table naming the model and the hashes", () => {
   const block = renderLeaderboard([bundle]);
-  assert.ok(block.includes("| model | overall |"));
-  assert.ok(block.includes("| fixture | 75.0% |"));
+  assert.ok(block.includes("| model | items | overall |"));
+  assert.ok(block.includes("| fixture | 4 | 75.0% |"), block);
+  assert.ok(block.includes("100.0% (n=1)"), "per-axis cells carry their own n");
   assert.ok(block.includes("abc123"));
   assert.ok(block.includes("def456"));
   assert.ok(block.includes("Retrieval hit rate"));

@@ -78,9 +78,12 @@ export function summarize(bundle: RunBundle): RunSummary {
   };
 }
 
-/** Corpus-level, not model-level: the same fixed pipeline retrieves the same chunks for every run. */
+/**
+ * Corpus-level, not model-level: the same fixed pipeline retrieves the same
+ * chunks for every run, so the most complete run is the one to read it from.
+ */
 export function retrievalHitRate(bundles: RunBundle[]): { rate: number | null; scored: number; total: number } {
-  const bundle = bundles[0];
+  const bundle = [...bundles].sort((a, b) => b.items.length - a.items.length)[0];
   if (!bundle) return { rate: null, scored: 0, total: 0 };
   const scorable = bundle.items.filter((item) => item.retrieval_hit !== null);
   if (scorable.length === 0) return { rate: null, scored: 0, total: bundle.items.length };
@@ -97,21 +100,35 @@ export function renderLeaderboard(bundles: RunBundle[]): string {
     return "No runs yet. Run `npm run bench -- --version v1 --model oracle` to produce one.";
   }
   const summaries = bundles.map(summarize).sort((a, b) => b.accuracy - a.accuracy || a.model.localeCompare(b.model));
-  const first = bundles[0]!;
+  const first = [...bundles].sort((a, b) => b.items.length - a.items.length)[0]!;
   const hit = retrievalHitRate(bundles);
 
-  const header = [
-    "| model | overall | " +
-      AXES.map((axis) => `${axis} (n=${summaries[0]?.perAxis[axis].n ?? 0})`).join(" | ") +
-      " | acc given retrieval hit | retries | mean latency ms | p95 latency ms | mean ttft ms | tokens in | tokens out | run cost |",
-    "|" + "---|".repeat(AXES.length + 12),
+  // Per-axis cells carry their own n, because a run made with --limit does not
+  // cover every axis and must not be read as if it scored 0 on the rest.
+  const columns = [
+    "model",
+    "items",
+    "overall",
+    ...AXES,
+    "acc given retrieval hit",
+    "retries",
+    "mean latency ms",
+    "p95 latency ms",
+    "mean ttft ms",
+    "tokens in",
+    "tokens out",
+    "run cost",
   ];
-  const rows = summaries.map((summary) =>
-    [
-      "",
+  const header = [`| ${columns.join(" | ")} |`, `|${"---|".repeat(columns.length)}`];
+  const rows = summaries.map((summary) => {
+    const cells = [
       summary.model,
+      String(summary.n),
       pct(summary.accuracy),
-      ...AXES.map((axis) => pct(summary.perAxis[axis].accuracy)),
+      ...AXES.map((axis) => {
+        const axisResult = summary.perAxis[axis];
+        return axisResult.n === 0 ? "not run" : `${pct(axisResult.accuracy)} (n=${axisResult.n})`;
+      }),
       pct(summary.accuracyGivenHit),
       String(summary.retries),
       ms(summary.meanLatencyMs),
@@ -120,9 +137,9 @@ export function renderLeaderboard(bundles: RunBundle[]): string {
       String(summary.tokensIn),
       String(summary.tokensOut),
       usd(summary.costUsd),
-      "",
-    ].join(" | "),
-  );
+    ];
+    return `| ${cells.join(" | ")} |`;
+  });
 
   const notes = [
     "",
