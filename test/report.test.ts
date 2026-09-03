@@ -4,7 +4,9 @@ import {
   injectLeaderboard,
   leaderboardMarkers,
   renderLeaderboard,
+  retrievalFullRate,
   retrievalHitRate,
+  retrievalParamsHash,
   summarize,
   twinGap,
 } from "../src/report/leaderboard.js";
@@ -107,17 +109,22 @@ test("the CSV has one row per field plus a header, in the declared column order"
   assert.equal(lines[0], CSV_COLUMNS.join(","));
   assert.equal(lines.length, 5, "four single-field items are four rows");
   assert.ok(
-    lines[1]?.startsWith("20260903-1200-fixture,fixture,mock,fixture,v1,abc123,def456,v1-ent-001,entities,,0,value,entities,true,true,"),
+    lines[1]?.startsWith(
+      `20260903-1200-fixture,fixture,mock,fixture,v1,abc123,def456,${retrievalParamsHash(meta.params)},8,` +
+        "v1-ent-001,entities,,0,value,entities,true,true,true,",
+    ),
     lines[1],
   );
   assert.equal(toCsv([caseBundle]).trim().split("\n").length, 5, "a three-field case and a twin are four rows");
 });
 
-test("a field row carries its own axis, hit flag, expected and got value", () => {
+test("a field row carries its own axis, both retrieval flags, expected and got value", () => {
   const rows = toCsv([caseBundle]).trim().split("\n");
-  assert.ok(rows[1]?.includes(",0,p99_ms,asof,false,true,1,2,"), rows[1]);
-  assert.ok(rows[2]?.includes(",1,owner,join,true,true,1,1,"), rows[2]);
-  assert.ok(rows[3]?.includes(",2,credits_eur,abstain,true,,1,1,"), "an abstain field has no hit flag");
+  assert.ok(rows[1]?.includes(",0,p99_ms,asof,false,true,true,1,2,"), rows[1]);
+  assert.ok(rows[2]?.includes(",1,owner,join,true,true,true,1,1,"), rows[2]);
+  assert.ok(rows[3]?.includes(",2,credits_eur,abstain,true,,,1,1,"), "an abstain field has neither flag");
+  assert.ok(toCsv([bundle]).split("\n")[0]?.includes("field_retrieval_hit,field_retrieval_full"));
+  assert.ok(toCsv([bundle]).split("\n")[0]?.includes("params_hash,top_n"));
 });
 
 test("the CSV carries no prompts and no raw output", () => {
@@ -178,20 +185,70 @@ test("the retrieval hit rate counts fields and breaks down per axis", () => {
   assert.equal(rate.perAxis.abstain, undefined);
 });
 
-test("the leaderboard renders a markdown table naming the model and the hashes", () => {
+test("the leaderboard renders both tables, naming the model, the hashes and the parameters", () => {
   const block = renderLeaderboard([bundle], "sco789");
-  assert.ok(block.includes("| model | fields | overall |"));
-  assert.ok(block.includes("| fixture | 4 | 75.0% |"), block);
+  assert.ok(block.includes("| model | params | fields | overall |"), block);
+  assert.ok(block.includes("| model | fields with full retrieval | given full retrieval |"), block);
+  assert.ok(block.includes(`| fixture | \`${retrievalParamsHash(meta.params)}\` | 4 | 75.0% |`), block);
   assert.ok(block.includes("100.0% (n=1)"), "per-axis cells carry their own n");
   assert.ok(block.includes("| cases | case fully correct |"));
   assert.ok(block.includes("abc123"));
   assert.ok(block.includes("def456"));
-  assert.ok(block.includes("Retrieval hit rate"));
+  assert.ok(block.includes("Retrieval hit rate for these parameters"));
+  assert.ok(block.includes("Full-retrieval rate for these parameters"));
+});
+
+test("the full-retrieval rate is stricter than the any-document hit rate", () => {
+  // One join field whose two gold documents were half retrieved: a hit, not full.
+  const halfJoin: RunBundle = {
+    meta: { ...meta, corpus_version: "v2" },
+    items: [item("v2-case-001", "join", [field("owner", "join", false, true, false)])],
+  };
+  assert.equal(retrievalHitRate([halfJoin]).rate, 1, "the any-document flag calls it a hit");
+  assert.equal(retrievalFullRate([halfJoin]).rate, 0, "the full flag does not");
+  assert.equal(summarize(halfJoin).hitFields, 1);
+  assert.equal(summarize(halfJoin).fullFields, 0);
+  assert.equal(summarize(halfJoin).accuracyGivenFull, null, "no field had all its evidence, so there is no reading number");
+  assert.equal(summarize(halfJoin).accuracyGivenHit, 0);
+});
+
+test("accuracy given full retrieval is the reading number, per axis", () => {
+  const summary = summarize({
+    meta: { ...meta, corpus_version: "v2" },
+    items: [
+      item("v2-case-001", "join", [
+        field("a", "join", true, true, true),
+        field("b", "join", false, true, false),
+        field("c", "join", false, true, false),
+      ]),
+    ],
+  });
+  assert.equal(summary.accuracy, 1 / 3, "one of three fields is right");
+  assert.equal(summary.accuracyGivenFull, 1, "the only field that had all its evidence was right");
+  assert.equal(summary.perAxis.join.n, 3);
+  assert.equal(summary.perAxisGivenFull.join.n, 1);
+  assert.equal(summary.perAxisGivenFull.join.accuracy, 1);
+});
+
+test("runs made with different retrieval parameters are grouped, not stacked in one table", () => {
+  const wide: RunBundle = {
+    meta: { ...meta, run_id: "20260903-1300-fixture", params: { ...meta.params, top_n: 32 } },
+    items: bundle.items,
+  };
+  const block = renderLeaderboard([bundle, wide], "sco789");
+  const narrowHash = retrievalParamsHash(meta.params);
+  const wideHash = retrievalParamsHash(wide.meta.params);
+  assert.notEqual(narrowHash, wideHash);
+  assert.ok(block.includes(`### Retrieval parameters \`${narrowHash}\`: top_n 8, rrf_k 60, recency_weight 0.1, max_chunks_per_doc 2`), block);
+  assert.ok(block.includes(`### Retrieval parameters \`${wideHash}\`: top_n 32,`), block);
+  assert.equal(block.split("| model | params | fields | overall |").length, 3, "one overall table per parameter group");
+  assert.ok(block.includes(`(params \`${wideHash}\`)`), "the notes say which read arm each row used");
+  assert.ok(!renderLeaderboard([bundle], "sco789").includes("### Retrieval parameters"), "one group needs no heading");
 });
 
 test("an axis no run covered is left out of the table", () => {
   const block = renderLeaderboard([bundle], "sco789");
-  assert.ok(!block.includes("| aggregation |"), "v1 covers five axes and shows five columns");
+  assert.ok(!block.includes(" | aggregation | "), "v1 covers five axes and shows five columns");
   assert.ok(renderLeaderboard([caseBundle], "sco789").includes(" | join | "));
 });
 

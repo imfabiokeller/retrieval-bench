@@ -11,15 +11,21 @@
 //   per-axis accuracy      field_correct grouped by field_axis
 //   overall field accuracy field_correct over every row
 //   accuracy given a hit   field_correct where field_retrieval_hit is true
+//   reading accuracy       field_correct where field_retrieval_full is true
 //   case accuracy          case_correct where field_ordinal = 0
 //   twin gap               field_correct where twin_of is set, against the same
 //                          field of the item named by twin_of
 //   retrieval hit rate     field_retrieval_hit over the rows that have one
+//   full-retrieval rate    field_retrieval_full over the rows that have one
+//
+// Group any of those by params_hash before comparing runs: two runs made with a
+// different top_n read different evidence and are not one leaderboard.
 //
 // The item-level scalars (latency, tokens, cost, retries) repeat on every field
 // row of the same item. Filter on `field_ordinal = 0` to get exactly one row per
 // item before summing any of them.
 
+import { retrievalParamsHash } from "./leaderboard.js";
 import type { ItemResult, RunMeta } from "../types.js";
 
 export const CSV_COLUMNS = [
@@ -30,6 +36,8 @@ export const CSV_COLUMNS = [
   "corpus_version",
   "pipeline_hash",
   "prompt_hash",
+  "params_hash",
+  "top_n",
   "item_id",
   "item_axis",
   "twin_of",
@@ -38,6 +46,7 @@ export const CSV_COLUMNS = [
   "field_axis",
   "field_correct",
   "field_retrieval_hit",
+  "field_retrieval_full",
   "expected",
   "got",
   "case_correct",
@@ -87,6 +96,8 @@ export function toCsv(bundles: RunBundle[]): string {
             bundle.meta.corpus_version,
             bundle.meta.pipeline_hash,
             bundle.meta.prompt_hash,
+            retrievalParamsHash(bundle.meta.params),
+            bundle.meta.params.top_n,
             item.item_id,
             item.axis,
             item.twin_of ?? "",
@@ -95,6 +106,7 @@ export function toCsv(bundles: RunBundle[]): string {
             field.axis,
             String(field.correct),
             field.retrieval_hit === null ? "" : String(field.retrieval_hit),
+            field.retrieval_full === null ? "" : String(field.retrieval_full),
             field.expected,
             field.got,
             String(item.correct),
