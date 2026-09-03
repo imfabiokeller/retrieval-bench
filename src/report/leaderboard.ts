@@ -15,6 +15,8 @@ export interface RunSummary {
   model: string;
   provider: string;
   accuracy: number;
+  /** The score the run itself recorded, before the report re-scored it. */
+  accuracyAtRun: number;
   n: number;
   perAxis: Record<Axis, { accuracy: number; n: number }>;
   accuracyGivenHit: number | null;
@@ -63,6 +65,7 @@ export function summarize(bundle: RunBundle): RunSummary {
     provider: bundle.meta.provider,
     n: items.length,
     accuracy: items.length === 0 ? 0 : items.filter((item) => item.correct).length / items.length,
+    accuracyAtRun: bundle.meta.accuracy_at_run,
     perAxis,
     hitItems: hits.length,
     accuracyGivenHit: hits.length === 0 ? null : hits.filter((item) => item.correct).length / hits.length,
@@ -97,7 +100,7 @@ const pct = (value: number | null): string => (value === null ? "n/a" : `${(valu
 const ms = (value: number | null): string => (value === null ? "n/a" : `${Math.round(value)}`);
 const usd = (value: number | null): string => (value === null ? "n/a" : `$${value.toFixed(4)}`);
 
-export function renderLeaderboard(bundles: RunBundle[]): string {
+export function renderLeaderboard(bundles: RunBundle[], scorerHash: string): string {
   if (bundles.length === 0) {
     return "No runs yet. Run `npm run bench -- --version v1 --model oracle` to produce one.";
   }
@@ -145,9 +148,27 @@ export function renderLeaderboard(bundles: RunBundle[]): string {
     return `| ${cells.join(" | ")} |`;
   });
 
+  // A run's accuracy is recomputed here from its stored raw replies, so a run
+  // made before a scorer fix is worth saying out loud rather than quietly
+  // restating.
+  const drifted = summaries.filter((summary) => Math.abs(summary.accuracy - summary.accuracyAtRun) > 1e-9);
+
   const notes = [
     "",
     `Corpus version **${first.meta.corpus_version}**, pipeline hash \`${first.meta.pipeline_hash}\`, prompt hash \`${first.meta.prompt_hash}\`. Rows are only comparable when all three match.`,
+    "",
+    `Scored with scorer hash \`${scorerHash}\`. Every row is re-scored at report time from the raw replies stored in \`items.jsonl\`, so a fix to the parser, the normalizer, the scorer or the alias table reaches every run without a paid re-run.`,
+    ...(drifted.length === 0
+      ? []
+      : [
+          "",
+          "Runs whose score moved when they were re-scored:",
+          "",
+          ...drifted.map(
+            (summary) =>
+              `- \`${summary.model}\`: ${pct(summary.accuracyAtRun)} at run time, ${pct(summary.accuracy)} now.`,
+          ),
+        ]),
     "",
     hit.rate === null
       ? "Retrieval hit rate: not measurable on this run."

@@ -139,8 +139,9 @@ export interface RunMeta {
   started_at: string;
   finished_at: string;
   item_count: number;
-  correct_count: number;
-  accuracy: number;
+  /** The score as the run itself computed it. The report re-scores from raw_output and may differ. */
+  correct_count_at_run: number;
+  accuracy_at_run: number;
   retrieval_hit_rate: number | null;
   projected_cost_usd: number | null;
   actual_cost_usd: number | null;

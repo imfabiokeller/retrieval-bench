@@ -122,8 +122,9 @@ async function runModel(entry: ModelEntry, items: Item[], options: Options): Pro
     started_at: started.toISOString(),
     finished_at: finished.toISOString(),
     item_count: results.length,
-    correct_count: results.filter((result) => result.correct).length,
-    accuracy: results.length === 0 ? 0 : results.filter((result) => result.correct).length / results.length,
+    correct_count_at_run: results.filter((result) => result.correct).length,
+    accuracy_at_run:
+      results.length === 0 ? 0 : results.filter((result) => result.correct).length / results.length,
     retrieval_hit_rate:
       scorableHits.length === 0
         ? null
@@ -139,7 +140,7 @@ async function runModel(entry: ModelEntry, items: Item[], options: Options): Pro
   };
   writeFileSync(join(dir, "run.json"), JSON.stringify(meta, null, 2) + "\n");
   console.log(
-    `${entry.name}: accuracy ${(meta.accuracy * 100).toFixed(1)}%, ` +
+    `${entry.name}: accuracy ${(meta.accuracy_at_run * 100).toFixed(1)}%, ` +
       `actual cost ${meta.actual_cost_usd === null ? "unknown" : `$${meta.actual_cost_usd.toFixed(4)}`}, ` +
       `written to results/${options.version}/runs/${id}`,
   );

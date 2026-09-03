@@ -34,7 +34,10 @@ export const CSV_COLUMNS = [
 
 export interface RunBundle {
   meta: RunMeta;
+  /** Re-scored at report time from the stored raw replies. */
   items: ItemResult[];
+  /** Item ids in the run that the current corpus no longer has, so they kept their stored score. */
+  unknownItems?: string[];
 }
 
 function csvCell(value: unknown): string {

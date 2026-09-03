@@ -348,13 +348,32 @@ for 120 chunks and 204 questions, and it is committed so nobody has to repeat it
 A result belongs to the tuple **corpus + embeddings + prompt + pipeline code**.
 All four are recorded on every run: `corpus_version`, and the embedding model
 inside `corpus/v1/index/meta.json`, plus `prompt_hash` and `pipeline_hash` in
-`run.json`. `pipeline_hash` is a sha256 over `bm25.ts`, `chunk.ts`,
-`normalize.ts`, `retrieve.ts`, `rrf.ts` and `score.ts`.
+`run.json`.
+
+Three fingerprints, because the three things they cover fail differently:
+
+| hash | covers | recorded |
+| --- | --- | --- |
+| `pipeline_hash` | `bm25.ts`, `chunk.ts`, `retrieve.ts`, `rrf.ts` | at run time, in `run.json` |
+| `prompt_hash` | the system prompt string | at run time, in `run.json` |
+| `scorer_hash` | `parse.ts`, `normalize.ts`, `score.ts`, `aliases.json` | at report time, in the leaderboard header |
+
+`pipeline_hash` and `prompt_hash` are recorded at run time because what a model
+was shown cannot be replayed afterwards. `scorer_hash` is computed at report time
+instead, because scoring *is* replayed: `items.jsonl` keeps the raw reply for
+every item, and `npm run report` re-parses and re-scores every stored run with
+the current parser, normalizer, scorer and alias table, taking the item schemas
+and the gold objects from the corpus. A scoring fix therefore reaches every run
+that has ever been made and never needs a paid re-run. `run.json` keeps the score
+the run itself computed as `accuracy_at_run`, and the report names any run whose
+score moved, both on stdout and under the leaderboard.
 
 **Never compare rows whose versions or hashes differ.** Changing a document, an
-item, the alias table, the chunker or the embedding model means `corpus/v2`, a
-fresh index and a fresh leaderboard. A corpus is frozen the moment it is
-published.
+item, the chunker or the embedding model means `corpus/v2`, a fresh index and a
+fresh leaderboard. A corpus is frozen the moment it is published. The alias table
+is the one exception: it is part of `scorer_hash` rather than of the corpus
+version, because changing it re-scores every existing run rather than
+invalidating it.
 
 ## Results layout
 
@@ -370,12 +389,13 @@ Three layers, none of them written by hand.
    visible in the results rather than only in its retry count.
    `run.json` next to it holds the run id, the model, the parameters, the corpus
    version, the pipeline and prompt hashes, the code commit, the timestamps, the
-   totals, and projected against actual cost.
-2. `results/v1/results.csv` is generated from every `items.jsonl`: one row per
-   item per run, all the scalar columns plus a compact expected and got object.
-   No prompts, no raw outputs.
-3. `results/v1/LEADERBOARD.md` is generated from the CSV and injected into this
-   README between the marker comments.
+   totals, projected against actual cost, and `accuracy_at_run`: the score the
+   run computed for itself, kept for the record and not used by the report.
+2. `results/v1/results.csv` is generated from every `items.jsonl` after
+   re-scoring: one row per item per run, all the scalar columns plus a compact
+   expected and got object. No prompts, no raw outputs.
+3. `results/v1/LEADERBOARD.md` is generated from the same re-scored runs and
+   injected into this README between the marker comments.
 
 Run ids are `YYYYMMDD-HHMM-<model-name>` in UTC, and that is also the directory
 name.

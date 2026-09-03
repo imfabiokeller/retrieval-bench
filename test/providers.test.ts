@@ -7,7 +7,7 @@ import { test } from "node:test";
 import { loadAliases, loadItems } from "../src/corpus.js";
 import { loadIndex } from "../src/index-io.js";
 import { findModel } from "../src/models.js";
-import { parseObject } from "../src/prompt.js";
+import { parseObject } from "../src/parse.js";
 import { createModelFactory } from "../src/providers/index.js";
 import { mockAnswer } from "../src/providers/mock.js";
 import { RETRIEVAL_DEFAULTS, Retriever } from "../src/retrieve.js";

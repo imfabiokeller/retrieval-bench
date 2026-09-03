@@ -53,8 +53,8 @@ const meta: RunMeta = {
   started_at: "2026-09-03T12:00:00.000Z",
   finished_at: "2026-09-03T12:05:00.000Z",
   item_count: 4,
-  correct_count: 3,
-  accuracy: 0.75,
+  correct_count_at_run: 3,
+  accuracy_at_run: 0.75,
   retrieval_hit_rate: 1,
   projected_cost_usd: 0.01,
   actual_cost_usd: 0.004,
@@ -97,7 +97,7 @@ test("an empty retrieval hit flag is written as an empty cell", () => {
 
 test("reasoning tokens are totalled per run and shown as their own column", () => {
   assert.equal(summarize(bundle).tokensReasoning, 20, "four items at five reasoning tokens each");
-  const block = renderLeaderboard([bundle]);
+  const block = renderLeaderboard([bundle], "sco789");
   assert.ok(block.includes("| tokens out | tokens reasoning |"), block);
   assert.ok(toCsv([bundle]).split("\n")[0]?.includes("tokens_out,tokens_reasoning,tokens_cached"));
 });
@@ -121,7 +121,7 @@ test("the retrieval hit rate excludes items with no gold documents", () => {
 });
 
 test("the leaderboard renders a markdown table naming the model and the hashes", () => {
-  const block = renderLeaderboard([bundle]);
+  const block = renderLeaderboard([bundle], "sco789");
   assert.ok(block.includes("| model | items | overall |"));
   assert.ok(block.includes("| fixture | 4 | 75.0% |"), block);
   assert.ok(block.includes("100.0% (n=1)"), "per-axis cells carry their own n");
@@ -131,7 +131,7 @@ test("the leaderboard renders a markdown table naming the model and the hashes",
 });
 
 test("an empty leaderboard says so instead of rendering an empty table", () => {
-  assert.ok(renderLeaderboard([]).includes("No runs yet"));
+  assert.ok(renderLeaderboard([], "sco789").includes("No runs yet"));
 });
 
 test("injection replaces only what is between the markers", () => {
