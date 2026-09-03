@@ -27,14 +27,11 @@ const TRAP_SET = new Set<Trap>(TRAPS);
 // The design's floors. A shortfall is a failure, not a warning.
 //
 // DESIGN.md asks for thirty or more questions per family "cost permitting", and
-// the cost does not permit thirty: a full run has to project under five dollars
-// for the most expensive model in models.json, and at this window size that line
-// falls at roughly two hundred questions in total. The per-family floor is
-// therefore the design's number cut evenly across the ten families, and the
-// design's own number is kept here beside it so the gap is visible rather than
-// forgotten. The trap floor is met in full.
-export const DESIGN_MIN_PER_FAMILY = 30;
-export const MIN_PER_FAMILY = 20;
+// at a 320 token output budget the cost permits thirty: the projection for the
+// most expensive model in models.json comes in under the five dollar cap at
+// three hundred and seven questions. The floor is therefore the design's own
+// number, and the trap floor is met in full.
+export const MIN_PER_FAMILY = 30;
 export const MIN_PER_TRAP = 15;
 /** Questions whose gold carries a scored chain. */
 export const MIN_HISTORY_SCORED = 40;

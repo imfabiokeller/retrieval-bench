@@ -12,7 +12,6 @@ import { loadAliases, loadDocs, loadQuestions, loadRetrievalParams } from "../co
 import { loadIndex } from "../index-io.js";
 import { RETRIEVAL_DEFAULTS, Retriever } from "../retrieve.js";
 import {
-  DESIGN_MIN_PER_FAMILY,
   MIN_HISTORY_SCORED,
   MIN_PER_FAMILY,
   MIN_PER_TRAP,
@@ -59,7 +58,7 @@ console.log(
     `(${guarantee.checked === 0 ? "n/a" : ((guarantee.met / guarantee.checked) * 100).toFixed(1)}%).`,
 );
 console.log(
-  `families (floor ${MIN_PER_FAMILY}, the design asks for ${DESIGN_MIN_PER_FAMILY} cost permitting): ` +
+  `families (floor ${MIN_PER_FAMILY}): ` +
     FAMILIES.map((family) => `${family} ${counts.perFamily[family]}`).join(", "),
 );
 console.log(`traps (floor ${MIN_PER_TRAP}): ` + TRAPS.map((trap) => `${trap} ${counts.perTrap[trap]}`).join(", "));
