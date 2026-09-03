@@ -8,6 +8,7 @@ import {
   normalizeNumber,
   normalizeTime,
   resolveAlias,
+  stripArticle,
 } from "../src/normalize.js";
 
 const aliases = { dan: "dan okonkwo", "@mei": "mei-ling chen", edge: "palisade edge" };
@@ -103,6 +104,22 @@ test("aliases resolve on the whole normalized string, never as substrings", () =
   assert.equal(resolveAlias("@mei", aliases), "mei-ling chen");
   assert.equal(resolveAlias("dan brown", aliases), "dan brown", "no substring replacement");
   assert.equal(resolveAlias("palisade edge", aliases), "palisade edge", "aliases do not chain");
+});
+
+test("a leading article is dropped from a string value on both sides", () => {
+  assert.equal(stripArticle("the relay team"), "relay team");
+  assert.equal(stripArticle("a line in the weekly digest"), "line in the weekly digest");
+  assert.equal(stripArticle("an mtls client certificate"), "mtls client certificate");
+  assert.equal(stripArticle("the"), "the", "an article on its own is not an article in front of a string");
+  assert.equal(stripArticle("theatre tickets"), "theatre tickets", "the article has to be a whole word");
+  assert.equal(
+    normalizeField("the relay team", "string", aliases).key,
+    normalizeField("relay team", "string", aliases).key,
+  );
+  assert.equal(
+    normalizeField(["the load testing tool"], "string[]", aliases).key,
+    normalizeField(["load testing tool"], "string[]", aliases).key,
+  );
 });
 
 test("normalizeField compares string[] as a set", () => {

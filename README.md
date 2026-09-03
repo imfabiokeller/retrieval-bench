@@ -185,14 +185,15 @@ lowercased, whitespace-collapsed and stripped of surrounding punctuation;
 numbers lose their currency symbols, unit words and thousands separators and
 gain their scale words; dates parse to `YYYY-MM-DD` from the unambiguous forms;
 times parse to `HH:MM` on a 24 hour clock with the zone word dropped rather than
-converted; booleans accept yes/no and 1/0; strings resolve through
-`corpus/v1/aliases.json` by exact match on the whole string; lists compare as
-sets, so order and duplicates do not matter.
+converted; booleans accept yes/no and 1/0; strings lose a leading `a`, `an` or
+`the` and then resolve through `corpus/v1/aliases.json` by exact match on the
+whole string; lists compare as sets, so order and duplicates do not matter.
 
-The alias table is what keeps the value channel about reading rather than
-phrasing: a surname resolves to the full name, `platform team` and `the platform
-team` are one answer. It has no entry for the bare first name `Ravi` or the bare
-first name `Anna`, because two people carry each in this corpus.
+The article rule and the alias table are what keep the value channel about
+reading rather than phrasing: `the platform team` and `platform team` are one
+answer without any table saying so, and a surname resolves to the full name. The
+table has no entry for the bare first name `Ravi` or the bare first name `Anna`,
+because two people carry each in this corpus.
 
 Every run is re-scored at report time from the raw replies stored in
 `items.jsonl`, so a fix to the parser, the normalizer, the scorer or the alias
