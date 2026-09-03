@@ -30,7 +30,7 @@ The archive runs from 2027-01-04 to 2027-07-01. Nothing in it is real.
 | `slack` | 420 | messages across twelve channels, short and casual, some in threads |
 | `doc` | 59 | reference material: runbooks, policies, tables, an architecture note, a glossary, monthly digests |
 | `meeting_note` | 43 | notes on one template, plus the weekly standups that use the same template every week |
-| `email` | 36 | with signatures, and 19 of them with a quoted chain below the reply |
+| `email` | 36 | with signatures, and 17 of them with a quoted chain below the reply |
 | `issue` | 11 | with a description that names the customer, the symptom and the component |
 | `issue_comment` | 11 | comments that say what they change |
 
@@ -110,12 +110,12 @@ close it reads.
 - The clocks go forward on 2027-03-28. Documents before that date carry a
   `+01:00` offset and documents after it carry `+02:00`, and the timezone
   questions turn on that hour.
-- Fourteen messages are in German, in the DACH channel and in support. Two of
+- Seventeen messages are in German, in the DACH channel and in support. Four of
   them carry a value that is asked for in English.
-- Values appear in plain text tables, in numbered lists, in two pasted JSON
-  blocks, and in a handful of messages with typos.
-- The weekly standups and the monthly digests are template noise: the same shape
-  every week with different numbers, and none of them is a gold source.
+- Values appear in ten plain text tables, in numbered lists, in two pasted JSON
+  blocks, and in two messages with a typo left in.
+- The 34 weekly standups and the 6 monthly digests are template noise: the same
+  shape every time with different numbers, and none of them is a gold source.
 
 ## The guarantee
 

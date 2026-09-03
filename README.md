@@ -145,9 +145,9 @@ It is written the way records are written, because artificial gaps make
 artificial retrieval failures. Issues carry a description that names the
 customer and the symptom, emails carry signatures and quoted chains, comments
 say what they change, and questions name what a person asking would know. Values
-sit in plain text tables, in numbered lists, in two pasted JSON blocks, in
-messages with typos and in fourteen messages in German. The clocks go forward on
-2027-03-28 and the timezone questions turn on that hour.
+sit in ten plain text tables, in numbered lists, in two pasted JSON blocks, in
+two messages with a typo left in, and in seventeen messages in German. The
+clocks go forward on 2027-03-28 and the timezone questions turn on that hour.
 
 ## The pipeline and its parameters
 
