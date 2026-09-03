@@ -318,13 +318,16 @@ function renderGroup(group: RunBundle[], label: string, hash: string, headed: bo
   // a v1 leaderboard keeps the five columns it always had.
   const axes = AXES.filter((axis) => summaries.some((summary) => summary.perAxis[axis].n > 0));
 
+  // The reading table drops any axis with nothing to condition on, which is
+  // always abstain: those fields have no gold documents, so they are never full.
+  const readingAxes = axes.filter((axis) => summaries.some((summary) => summary.perAxisGivenFull[axis].n > 0));
   const reading = table(
-    ["model", "fields with full retrieval", "given full retrieval", ...axes],
+    ["model", "fields with full retrieval", "given full retrieval", ...readingAxes],
     summaries.map((summary) => [
       summary.model,
       String(summary.fullFields),
       pct(summary.accuracyGivenFull),
-      ...axes.map((axis) => axisCell(summary.perAxisGivenFull[axis], "n/a")),
+      ...readingAxes.map((axis) => axisCell(summary.perAxisGivenFull[axis], "not run")),
     ]),
   );
 
@@ -371,7 +374,7 @@ function renderGroup(group: RunBundle[], label: string, hash: string, headed: bo
 
   return [
     ...(headed ? [`### Retrieval parameters \`${hash}\`: ${label}`, ""] : []),
-    "**Reading.** Accuracy over the fields whose every gold document was in the retrieved set, so the model had the evidence and the number is about what it did with it. Abstain fields have no gold documents and never appear here.",
+    "**Reading.** Accuracy over the fields whose every gold document was in the retrieved set, so the model had the evidence and the number is about what it did with it. Abstain fields have no gold documents, are never full, and have no column here.",
     "",
     ...reading,
     "",
