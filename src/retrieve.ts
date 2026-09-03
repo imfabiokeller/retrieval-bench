@@ -4,8 +4,9 @@
 //   vector  cosine over the committed gemini-embedding-001 vectors of that same text
 //
 // The two lists are fused with Reciprocal Rank Fusion at k = 60, given a soft
-// recency boost, capped at 2 chunks per document, and cut to the top 8. That is
-// the entire retrieval stage. There is no LLM rerank: selection among the 8 is
+// recency boost, capped at 2 chunks per document, and cut to the top N of the
+// corpus version being run (8 for v1, 12 for v2). That is the entire retrieval
+// stage. There is no LLM rerank: selection among the 8 is
 // folded into the single extraction call, so the model under test stays the
 // only variable in the benchmark.
 
@@ -15,6 +16,11 @@ import { cosine } from "./embed.js";
 import { fuse } from "./rrf.js";
 import type { Chunk, RetrievalParams, Retrieved } from "./types.js";
 
+/**
+ * The v1 parameters, and the fallback for a corpus version that ships no
+ * params.json. A published corpus states its own in corpus/<version>/params.json
+ * and the runner reads them from there.
+ */
 export const RETRIEVAL_DEFAULTS: RetrievalParams = {
   top_n: 8,
   rrf_k: 60,

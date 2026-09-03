@@ -6,7 +6,7 @@
 
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { loadAliases, loadItems } from "../corpus.js";
+import { loadAliases, loadItems, loadRetrievalParams } from "../corpus.js";
 import { enforceCap, project } from "../cost.js";
 import { gitCommit, pipelineHash } from "../hash.js";
 import { loadIndex } from "../index-io.js";
@@ -71,7 +71,7 @@ async function runModel(entry: ModelEntry, items: Item[], options: Options): Pro
   const index = loadIndex(options.version);
   const aliases = loadAliases(options.version);
   const retriever = new Retriever(index.chunks, index.chunkVectors);
-  const params = runParamsFor(entry, RETRIEVAL_DEFAULTS);
+  const params = runParamsFor(entry, loadRetrievalParams(options.version, RETRIEVAL_DEFAULTS));
   const context: RunItemContext = {
     retriever,
     queryVectors: index.queryVectors,
