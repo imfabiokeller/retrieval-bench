@@ -9,6 +9,7 @@ import { chunkCorpus } from "../src/chunk.js";
 import { fieldAxis, fieldGoldDocIds, fieldRetrievalFull, fieldRetrievalHit } from "../src/fields.js";
 import { loadIndex } from "../src/index-io.js";
 import { RETRIEVAL_DEFAULTS, Retriever } from "../src/retrieve.js";
+import { scoreItem } from "../src/score.js";
 import { validateCorpus } from "../src/validate.js";
 import type { Axis } from "../src/types.js";
 
@@ -103,6 +104,42 @@ test("aliases map to canonical values, never chain, and leave the ambiguous word
   assert.equal(aliases["relay"], undefined, "relay is also an issue label, so the bare word resolves to no product");
   assert.equal(aliases["menon"], "ravi menon");
   assert.equal(aliases["sundaram"], "ravi sundaram");
+});
+
+// A question that asks which issue tracks something expects the id. Slack names
+// the issue by its title and never by its id, so the title is the answer the
+// evidence hands the model, and it has to resolve. The 14 decoy issues are gold
+// for nothing and must NOT resolve: answering with a near-duplicate title is a
+// wrong answer, not a phrasing difference.
+test("every real issue title aliases to its id, and no decoy title does", () => {
+  const goldDocIds = new Set(items.flatMap((item) => item.gold_doc_ids));
+  const issues = docs.filter((doc) => doc.type === "issue");
+  const real = issues.filter((doc) => goldDocIds.has(doc.id));
+  const decoys = issues.filter((doc) => !goldDocIds.has(doc.id));
+  assert.equal(real.length, 22);
+  assert.equal(decoys.length, 14);
+
+  for (const issue of real) {
+    const title = (issue.title ?? "").toLowerCase();
+    assert.equal(aliases[title], issue.id.toLowerCase(), `"${title}" must resolve to ${issue.id}`);
+  }
+  for (const issue of decoys) {
+    const title = (issue.title ?? "").toLowerCase();
+    assert.equal(aliases[title], undefined, `the decoy "${title}" must not resolve to anything`);
+  }
+});
+
+test("an issue answered by its title scores the same as one answered by its id", () => {
+  const byId = new Map(items.map((item) => [item.id, item]));
+  const item = byId.get("v2-case-011")!;
+  const title = docs.find((doc) => doc.id === "WRN-204")?.title ?? "";
+  const scored = scoreItem(item, { ...item.expected, root_cause_issue: title }, aliases, item.gold_doc_ids);
+  const field = scored.fields.find((entry) => entry.field === "root_cause_issue");
+  assert.equal(field?.correct, true, `answering "${title}" is answering WRN-204`);
+
+  const decoy = docs.find((doc) => doc.id === "WRN-253")?.title ?? "";
+  const wrong = scoreItem(item, { ...item.expected, root_cause_issue: decoy }, aliases, item.gold_doc_ids);
+  assert.equal(wrong.fields.find((entry) => entry.field === "root_cause_issue")?.correct, false, decoy);
 });
 
 test("the renamed product keeps two canonical names, one for each period", () => {
