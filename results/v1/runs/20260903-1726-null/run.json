@@ -1,0 +1,31 @@
+{
+  "run_id": "20260903-1726-null",
+  "model_name": "null",
+  "provider": "mock",
+  "model_id": "null",
+  "params": {
+    "top_n": 8,
+    "rrf_k": 60,
+    "recency_weight": 0.1,
+    "max_chunks_per_doc": 2,
+    "temperature": 0,
+    "max_tokens": 512
+  },
+  "corpus_version": "v1",
+  "pipeline_hash": "83a514b5fba8f5e6",
+  "prompt_hash": "87dccab19b3db028",
+  "git_commit": "804c65313178a99c4636cd76329a701ba21f3bf4",
+  "started_at": "2026-09-03T17:26:27.169Z",
+  "finished_at": "2026-09-03T17:26:28.918Z",
+  "item_count": 204,
+  "correct_count": 40,
+  "accuracy": 0.19607843137254902,
+  "retrieval_hit_rate": 0.9878048780487805,
+  "projected_cost_usd": 0,
+  "actual_cost_usd": 0,
+  "tokens_in": 0,
+  "tokens_out": 0,
+  "tokens_cached": 0,
+  "errors": 0,
+  "retries": 0
+}
