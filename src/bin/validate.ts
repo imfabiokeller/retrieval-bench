@@ -8,8 +8,10 @@
 // a legitimate paraphrase (a date written as "7 April 2026", a boolean).
 
 import { loadAliases, loadDocs, loadItems } from "../corpus.js";
+import { fieldMeta } from "../fields.js";
 import { baseNormalize, normalizeField } from "../normalize.js";
 import { validateCorpus } from "../validate.js";
+import type { Axis } from "../types.js";
 
 function arg(name: string, fallback: string): string {
   const index = process.argv.indexOf(`--${name}`);
@@ -25,16 +27,23 @@ const problems = validateCorpus(docs, items);
 for (const problem of problems) console.log(`PROBLEM ${problem}`);
 
 const textById = new Map(docs.map((doc) => [doc.id, [doc.id, doc.type, doc.channel ?? "", doc.project ?? "", doc.parent_id ?? "", doc.title ?? "", doc.author, doc.created_at, doc.text].join(" ")]));
+// Grounding is checked per field against that field's own gold documents. An
+// aggregation field is exempt: its answer is arithmetic over several documents
+// and is not meant to appear anywhere as a literal.
 let weak = 0;
+let scoredFields = 0;
+const perAxis = new Map<Axis, number>();
 for (const item of items) {
-  if (item.axis === "abstain") continue;
   for (const field of item.schema.required) {
+    const meta = fieldMeta(item, field);
+    scoredFields += 1;
+    perAxis.set(meta.axis, (perAxis.get(meta.axis) ?? 0) + 1);
     const type = item.schema.properties[field]?.type ?? "string";
-    if (type === "boolean") continue;
+    if (meta.axis === "abstain" || meta.axis === "aggregation" || type === "boolean") continue;
     const expected = normalizeField(item.expected[field] ?? null, type, aliases);
     if (expected.value === null) continue;
     const needles = Array.isArray(expected.value) ? expected.value : [String(expected.value)];
-    const haystack = item.gold_doc_ids.map((id) => baseNormalize(textById.get(id) ?? "") ?? "").join(" ");
+    const haystack = meta.gold_doc_ids.map((id) => baseNormalize(textById.get(id) ?? "") ?? "").join(" ");
     for (const needle of needles) {
       if (!haystack.includes(needle)) {
         weak += 1;
@@ -44,7 +53,15 @@ for (const item of items) {
   }
 }
 
+const twins = items.filter((item) => item.twin_of !== undefined).length;
 console.log(
-  `${version}: ${docs.length} docs, ${items.length} items, ${problems.length} structural problems, ${weak} weakly grounded fields`,
+  `${version}: ${docs.length} docs, ${items.length} items (${twins} twins), ${scoredFields} scored fields, ` +
+    `${problems.length} structural problems, ${weak} weakly grounded fields`,
+);
+console.log(
+  [...perAxis.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([axis, count]) => `  ${axis}: ${count} fields`)
+    .join("\n"),
 );
 process.exitCode = problems.length === 0 ? 0 : 1;
