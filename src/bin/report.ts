@@ -6,10 +6,10 @@
 //
 // Every run is re-scored on the way in, from the raw replies stored in its
 // items.jsonl, using the current parser, normalizer, scorer and alias table and
-// the item schemas from the corpus. A scoring fix therefore reaches every run
-// that has ever been made, and never needs a paid re-run. run.json keeps the
-// score the run itself computed as accuracy_at_run, and any run whose score
-// moved is named here and under the leaderboard.
+// the gold packs from the corpus. A scoring fix therefore reaches every run that
+// has ever been made, and never needs a paid re-run. run.json keeps the score the
+// run itself computed as pack_accuracy_at_run, and any run whose score moved is
+// named here and under the leaderboard.
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -17,7 +17,7 @@ import { REPO_ROOT } from "../corpus.js";
 import { scorerHash } from "../hash.js";
 import { injectLeaderboard, renderLeaderboard } from "../report/leaderboard.js";
 import { loadRuns, resultsDir } from "../report/load.js";
-import { accuracyOf } from "../report/rescore.js";
+import { packAccuracyOf } from "../report/rescore.js";
 import { toCsv } from "../report/rows.js";
 
 function arg(name: string, fallback: string): string {
@@ -45,17 +45,17 @@ if (existsSync(readmePath)) {
 }
 
 for (const bundle of bundles) {
-  const rescored = accuracyOf(bundle.items);
-  if (Math.abs(rescored - bundle.meta.accuracy_at_run) > 1e-9) {
+  const rescored = packAccuracyOf(bundle.items);
+  if (Math.abs(rescored - bundle.meta.pack_accuracy_at_run) > 1e-9) {
     console.log(
-      `warning: ${bundle.meta.run_id} scored ${(bundle.meta.accuracy_at_run * 100).toFixed(1)}% at run time ` +
-        `and ${(rescored * 100).toFixed(1)}% under the current scorer.`,
+      `warning: ${bundle.meta.run_id} had ${(bundle.meta.pack_accuracy_at_run * 100).toFixed(1)}% of packs fully correct ` +
+        `at run time and ${(rescored * 100).toFixed(1)}% under the current scorer.`,
     );
   }
   const unknown = bundle.unknownItems ?? [];
   if (unknown.length > 0) {
     console.log(
-      `warning: ${bundle.meta.run_id} has ${unknown.length} items the corpus no longer holds ` +
+      `warning: ${bundle.meta.run_id} has ${unknown.length} questions the corpus no longer holds ` +
         `(${unknown.slice(0, 3).join(", ")}${unknown.length > 3 ? ", ..." : ""}); they kept their stored score.`,
     );
   }

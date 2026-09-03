@@ -5,13 +5,13 @@
 // Every run is re-scored on the way in. The stored raw model replies are the
 // source of truth, and the current parser, normalizer, scorer and alias table
 // are applied to them, so fixing the scorer never costs a paid re-run. The score
-// the run itself recorded stays in run.json as accuracy_at_run, and the report
-// says so when the two differ.
+// the run itself recorded stays in run.json as pack_accuracy_at_run, and the
+// report says so when the two differ.
 
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
-import { REPO_ROOT, loadAliases, loadItems, readJsonl } from "../corpus.js";
-import type { Item, ItemResult, RunMeta } from "../types.js";
+import { REPO_ROOT, loadAliases, loadQuestions, readJsonl } from "../corpus.js";
+import type { ItemResult, Question, RunMeta } from "../types.js";
 import { rescoreItems } from "./rescore.js";
 import type { RunBundle } from "./rows.js";
 
@@ -27,7 +27,7 @@ export function loadRuns(version: string): RunBundle[] {
   const dir = runsDir(version);
   if (!existsSync(dir)) return [];
 
-  const corpus = new Map<string, Item>(loadItems(version).map((item) => [item.id, item]));
+  const corpus = new Map<string, Question>(loadQuestions(version).map((question) => [question.id, question]));
   const aliases = loadAliases(version);
 
   const bundles: RunBundle[] = [];
