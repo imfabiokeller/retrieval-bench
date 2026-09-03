@@ -294,12 +294,16 @@ The normalization rules, applied in this order:
 4. A `date` field is parsed to `YYYY-MM-DD` from ISO, `YYYY/MM/DD`,
    `7 April 2026` and `April 7, 2026`. A bare `07-04-2026` is rejected because it
    cannot be told apart from `MM-DD-YYYY`.
-5. A `boolean` field accepts yes/no, true/false, y/n and 1/0.
-6. A `string` field is resolved through `corpus/v1/aliases.json` by exact match
+5. A `time` field is parsed to `HH:MM` on a 24 hour clock, so `09:41`, `9:41`,
+   `09:41 UTC`, `15:00 CET`, `3 pm` and `15:00h` are one value. The zone word is
+   dropped rather than used to convert, because the gold value is the time as the
+   corpus states it. A bare hour is not a time, and neither is anything else.
+6. A `boolean` field accepts yes/no, true/false, y/n and 1/0.
+7. A `string` field is resolved through `corpus/v1/aliases.json` by exact match
    on the whole normalized string, so `dan`, `@dan` and `Dan Okonkwo` are one
    value. Alias resolution is never substring replacement and aliases never
    chain.
-7. A `string[]` field normalizes every element as a string and compares as a
+8. A `string[]` field normalizes every element as a string and compares as a
    set, so order and duplicates do not matter.
 
 Anything that fails to parse falls back to its step 2 form, which simply does not

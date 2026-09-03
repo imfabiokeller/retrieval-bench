@@ -17,7 +17,7 @@ export const SYSTEM_PROMPT = [
   "3. Use only the evidence. Do not use outside knowledge and do not guess.",
   "4. If the evidence does not support a value for a field, set that field to null. null is the right answer more often than a plausible-looking value.",
   "5. When two pieces of evidence disagree, prefer the one with the newer date. A later correction replaces an earlier statement, and an older value repeated after a correction is still the older value.",
-  "6. Field types: \"string\" is a plain string; \"number\" is a bare number with no units, no currency symbol and no thousands separators; \"date\" is YYYY-MM-DD; \"boolean\" is true or false; \"string[]\" is an array of strings.",
+  "6. Field types: \"string\" is a plain string; \"number\" is a bare number with no units, no currency symbol and no thousands separators; \"date\" is YYYY-MM-DD; \"time\" is HH:MM on a 24 hour clock with no timezone; \"boolean\" is true or false; \"string[]\" is an array of strings.",
 ].join("\n");
 
 export const PROMPT_HASH = sha256(SYSTEM_PROMPT).slice(0, 16);

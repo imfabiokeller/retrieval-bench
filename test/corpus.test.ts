@@ -42,6 +42,22 @@ test("item ids are stable and follow the versioned scheme", () => {
   }
 });
 
+test("a clock time is typed time, not string", () => {
+  const clock = /^\d{1,2}:\d{2}/;
+  for (const item of items) {
+    for (const [field, value] of Object.entries(item.expected)) {
+      if (typeof value !== "string" || !clock.test(value)) continue;
+      assert.equal(
+        item.schema.properties[field]?.type,
+        "time",
+        `${item.id}.${field} holds a clock time and must be typed time`,
+      );
+    }
+  }
+  const timed = items.filter((item) => Object.values(item.schema.properties).some((p) => p.type === "time"));
+  assert.equal(timed.length, 3, "corpus v1 has three clock-time items");
+});
+
 test("aliases map to canonical values and never chain", () => {
   const values = new Set(Object.values(aliases));
   for (const [alias, canonical] of Object.entries(aliases)) {

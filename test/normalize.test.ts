@@ -6,6 +6,7 @@ import {
   normalizeDate,
   normalizeField,
   normalizeNumber,
+  normalizeTime,
   resolveAlias,
 } from "../src/normalize.js";
 
@@ -55,6 +56,38 @@ test("dates parse from the unambiguous formats only", () => {
   assert.equal(normalizeDate("7th april 2026"), "2026-04-07");
   assert.equal(normalizeDate("07-04-2026"), null, "day first is ambiguous and is rejected");
   assert.equal(normalizeDate("2026-02-30"), null, "an impossible date is rejected");
+});
+
+test("times parse to HH:MM on a 24 hour clock and drop the zone word", () => {
+  assert.equal(normalizeTime("09:41"), "09:41");
+  assert.equal(normalizeTime("9:41"), "09:41");
+  assert.equal(normalizeTime("09:41 utc"), "09:41");
+  assert.equal(normalizeTime("15:00 cet"), "15:00");
+  assert.equal(normalizeTime("3 pm"), "15:00");
+  assert.equal(normalizeTime("15:00h"), "15:00");
+  assert.equal(normalizeTime("09:41:00"), "09:41", "seconds are dropped");
+  assert.equal(normalizeTime("12 am"), "00:00");
+  assert.equal(normalizeTime("12 pm"), "12:00");
+  assert.equal(normalizeTime("09:41 utc+2"), "09:41", "an offset is dropped with the zone");
+});
+
+test("anything that is not a clock time is rejected", () => {
+  assert.equal(normalizeTime("mid-afternoon"), null);
+  assert.equal(normalizeTime("25:00"), null, "an impossible hour is rejected");
+  assert.equal(normalizeTime("09:70"), null, "an impossible minute is rejected");
+  assert.equal(normalizeTime("13 pm"), null, "a 24 hour value with a meridiem is rejected");
+  assert.equal(normalizeTime("2026-04-07"), null, "a date is not a time");
+  assert.equal(normalizeTime("9"), null, "a bare hour is a number, not a time");
+});
+
+test("a time field compares on the parsed clock time, not the stated zone", () => {
+  const expected = normalizeField("09:41", "time", aliases);
+  assert.equal(normalizeField("09:41 UTC", "time", aliases).key, expected.key);
+  assert.equal(normalizeField("9:41", "time", aliases).key, expected.key);
+  assert.equal(normalizeField("15:00 CET", "time", aliases).key, normalizeField("15:00", "time", aliases).key);
+  assert.notEqual(normalizeField("09:14", "time", aliases).key, expected.key);
+  assert.notEqual(normalizeField("some time in the morning", "time", aliases).key, expected.key);
+  assert.equal(normalizeField("09:41", "string", aliases).key !== expected.key, true, "the time key is its own namespace");
 });
 
 test("booleans accept yes/no, true/false, y/n and 1/0", () => {

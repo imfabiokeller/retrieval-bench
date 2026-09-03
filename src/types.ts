@@ -16,7 +16,7 @@ export interface Doc {
   text: string;
 }
 
-export type FieldType = "string" | "number" | "date" | "boolean" | "string[]";
+export type FieldType = "string" | "number" | "date" | "time" | "boolean" | "string[]";
 
 export interface ItemSchema {
   type: "object";
