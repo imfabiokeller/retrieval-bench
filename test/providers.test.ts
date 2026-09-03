@@ -4,7 +4,8 @@
 
 import { strict as assert } from "node:assert";
 import { test } from "node:test";
-import { loadAliases, loadItems } from "../src/corpus.js";
+import { loadAliases, loadItems, loadRetrievalParams } from "../src/corpus.js";
+import { fieldAxis } from "../src/fields.js";
 import { loadIndex } from "../src/index-io.js";
 import { findModel } from "../src/models.js";
 import { parseObject } from "../src/parse.js";
@@ -20,49 +21,70 @@ const aliases = loadAliases(version);
 const index = loadIndex(version);
 const retriever = new Retriever(index.chunks, index.chunkVectors);
 
-function contextFor(name: string): RunItemContext {
+function contextFor(name: string, forVersion = version): RunItemContext {
   const entry = findModel(name);
+  const versionIndex = forVersion === version ? index : loadIndex(forVersion);
   return {
-    retriever,
-    queryVectors: index.queryVectors,
-    aliases,
+    retriever: forVersion === version ? retriever : new Retriever(versionIndex.chunks, versionIndex.chunkVectors),
+    queryVectors: versionIndex.queryVectors,
+    aliases: forVersion === version ? aliases : loadAliases(forVersion),
     entry,
-    params: runParamsFor(entry, RETRIEVAL_DEFAULTS),
+    params: runParamsFor(entry, loadRetrievalParams(forVersion, RETRIEVAL_DEFAULTS)),
     modelFor: createModelFactory(entry).forItem,
   };
 }
 
-// A cross-section rather than all 204 items, so the suite stays fast.
-const sample = [
-  ...items.filter((item) => item.axis === "entities").slice(0, 6),
-  ...items.filter((item) => item.axis === "facts").slice(0, 6),
-  ...items.filter((item) => item.axis === "supersession").slice(0, 6),
-  ...items.filter((item) => item.axis === "conflict").slice(0, 6),
-  ...items.filter((item) => item.axis === "abstain").slice(0, 6),
-];
-
-test("the oracle model scores 100% on every axis", async () => {
-  const context = contextFor("oracle");
-  for (const item of sample) {
-    const result = await runItem(context, item);
-    assert.equal(result.error, null, `${item.id} errored: ${result.error}`);
-    assert.equal(result.retries, 0, `${item.id} needed a retry`);
-    assert.equal(result.correct, true, `${item.id} (${item.axis}) scored incorrect against its own gold object`);
+// A cross-section rather than every item, so the suite stays fast. Both corpus
+// versions are covered: v1 items carry one axis each, v2 cases carry one per
+// field, and the mocks have to behave the same way on both.
+function sampleOf(corpusVersion: string, perAxis: number) {
+  const all = loadItems(corpusVersion);
+  const seen = new Map<string, number>();
+  const picked = [];
+  for (const item of all) {
+    for (const field of item.schema.required) {
+      const axis = fieldAxis(item, field);
+      const count = seen.get(axis) ?? 0;
+      if (count >= perAxis) continue;
+      seen.set(axis, count + 1);
+      picked.push(item);
+      break;
+    }
   }
-});
+  return picked;
+}
 
-test("the null model scores 100% on abstain and 0% everywhere else", async () => {
-  const context = contextFor("null");
-  for (const item of sample) {
-    const result = await runItem(context, item);
-    assert.equal(result.error, null);
-    assert.equal(
-      result.correct,
-      item.axis === "abstain",
-      `${item.id} (${item.axis}) should be ${item.axis === "abstain" ? "correct" : "incorrect"} for an all-null answer`,
-    );
-  }
-});
+for (const corpusVersion of ["v1", "v2"]) {
+  const sample = sampleOf(corpusVersion, 6);
+
+  test(`the oracle model scores 100% on every field of every axis on ${corpusVersion}`, async () => {
+    const context = contextFor("oracle", corpusVersion);
+    for (const item of sample) {
+      const result = await runItem(context, item);
+      assert.equal(result.error, null, `${item.id} errored: ${result.error}`);
+      assert.equal(result.retries, 0, `${item.id} needed a retry`);
+      assert.equal(result.correct, true, `${item.id} scored incorrect against its own gold object`);
+      for (const field of result.fields) {
+        assert.equal(field.correct, true, `${item.id}.${field.field} (${field.axis}) is wrong for the gold answer`);
+      }
+    }
+  });
+
+  test(`the null model is right only on abstain fields on ${corpusVersion}`, async () => {
+    const context = contextFor("null", corpusVersion);
+    for (const item of sample) {
+      const result = await runItem(context, item);
+      assert.equal(result.error, null);
+      for (const field of result.fields) {
+        assert.equal(
+          field.correct,
+          field.axis === "abstain",
+          `${item.id}.${field.field} (${field.axis}) should be ${field.axis === "abstain" ? "correct" : "incorrect"} for a null answer`,
+        );
+      }
+    }
+  });
+}
 
 test("a run records the retrieved chunks, the prompt and the retrieval hit flag", async () => {
   const context = contextFor("oracle");
