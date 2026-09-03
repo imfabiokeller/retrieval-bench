@@ -6,44 +6,44 @@ Corpus version **v1**, pipeline hash `c9ff11afc1436a70`, prompt hash `dff88c3a45
 
 The unit is the question: one question, one retrieval, one call, one pack, four channels. A model that has been run more than once on the same corpus and the same parameters is one row, and its cells carry the mean with the min to max spread of those runs.
 
-Scored with scorer hash `45b950d83d952e9d`. Every row is re-scored at report time from the raw replies stored in `items.jsonl`, so a fix to the parser, the normalizer, the scorer or the alias table reaches every run without a paid re-run.
+Scored with scorer hash `4d813bd27519ffe6`. Every row is re-scored at report time from the raw replies stored in `items.jsonl`, so a fix to the parser, the normalizer, the scorer or the alias table reaches every run without a paid re-run.
 
 **Headline.** Macro value accuracy is the mean of value accuracy over the families, so each family weighs the same. A pack is fully correct when every scored channel is correct.
 
 | model | runs | macro value accuracy | packs fully correct | lookup | current | asof | join | multihop | exhaustive | aggregation | temporal | rule | abstain |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| oracle | 1 | 100.0% | 100.0% | 100.0% (n=37) | 100.0% (n=20) | 100.0% (n=20) | 100.0% (n=22) | 100.0% (n=22) | 100.0% (n=21) | 100.0% (n=21) | 100.0% (n=27) | 100.0% (n=24) | 100.0% (n=22) |
-| deepseek-v4-flash | 1 | 86.7% | 40.3% | 100.0% (n=37) | 55.0% (n=20) | 100.0% (n=20) | 90.9% (n=22) | 86.4% (n=22) | 90.5% (n=21) | 90.5% (n=21) | 66.7% (n=27) | 95.8% (n=24) | 90.9% (n=22) |
-| null | 1 | 10.0% | 9.3% | 0.0% (n=37) | 0.0% (n=20) | 0.0% (n=20) | 0.0% (n=22) | 0.0% (n=22) | 0.0% (n=21) | 0.0% (n=21) | 0.0% (n=27) | 0.0% (n=24) | 100.0% (n=22) |
+| oracle | 1 | 100.0% | 100.0% | 100.0% (n=37) | 100.0% (n=30) | 100.0% (n=30) | 100.0% (n=30) | 100.0% (n=30) | 100.0% (n=30) | 100.0% (n=30) | 100.0% (n=30) | 100.0% (n=30) | 100.0% (n=30) |
+| deepseek-v4-flash | 1 | 87.7% | 52.4% | 100.0% (n=37) | 63.3% (n=30) | 90.0% (n=30) | 100.0% (n=30) | 86.7% (n=30) | 96.7% (n=30) | 93.3% (n=30) | 63.3% (n=30) | 96.7% (n=30) | 86.7% (n=30) |
+| null | 1 | 10.0% | 9.8% | 0.0% (n=37) | 0.0% (n=30) | 0.0% (n=30) | 0.0% (n=30) | 0.0% (n=30) | 0.0% (n=30) | 0.0% (n=30) | 0.0% (n=30) | 0.0% (n=30) | 100.0% (n=30) |
 
 **Channels.** Value and status are scored on every question, history only where the gold carries a chain, sources on every question. Sources recall is the share of gold sources cited, averaged over the questions whose gold cites anything.
 
 | model | value | status | history | sources | sources recall |
 |---|---|---|---|---|---|
-| oracle | 100.0% (n=236) | 100.0% (n=236) | 100.0% (n=41) | 100.0% (n=236) | 100.0% |
-| deepseek-v4-flash | 87.3% (n=236) | 97.0% (n=236) | 56.1% (n=41) | 43.6% (n=236) | 82.7% |
-| null | 9.3% (n=236) | 9.3% (n=236) | 0.0% (n=41) | 9.3% (n=236) | 0.0% |
+| oracle | 100.0% (n=307) | 100.0% (n=307) | 100.0% (n=61) | 100.0% (n=307) | 100.0% |
+| deepseek-v4-flash | 87.9% (n=307) | 96.7% (n=307) | 54.1% (n=61) | 57.7% (n=307) | 82.8% |
+| null | 9.8% (n=307) | 9.8% (n=307) | 0.0% (n=61) | 9.8% (n=307) | 0.0% |
 
 **Trap resistance.** The share of the questions carrying that trap whose value channel was correct.
 
 | model | superseded | statement_shaped_question | quoted_email | proposal | retraction | scope | relative_date | unit | timezone | keyword | same_name | planned_vs_done | negation | chunk_split | format |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| oracle | 100.0% (n=59) | 100.0% (n=23) | 100.0% (n=19) | 100.0% (n=23) | 100.0% (n=25) | 100.0% (n=22) | 100.0% (n=15) | 100.0% (n=17) | 100.0% (n=15) | 100.0% (n=30) | 100.0% (n=18) | 100.0% (n=15) | 100.0% (n=31) | 100.0% (n=16) | 100.0% (n=23) |
-| deepseek-v4-flash | 72.9% (n=59) | 73.9% (n=23) | 78.9% (n=19) | 82.6% (n=23) | 68.0% (n=25) | 95.5% (n=22) | 60.0% (n=15) | 94.1% (n=17) | 100.0% (n=15) | 86.7% (n=30) | 88.9% (n=18) | 93.3% (n=15) | 90.3% (n=31) | 100.0% (n=16) | 87.0% (n=23) |
-| null | 0.0% (n=59) | 0.0% (n=23) | 0.0% (n=19) | 0.0% (n=23) | 0.0% (n=25) | 40.9% (n=22) | 0.0% (n=15) | 11.8% (n=17) | 6.7% (n=15) | 36.7% (n=30) | 5.6% (n=18) | 0.0% (n=15) | 6.5% (n=31) | 0.0% (n=16) | 0.0% (n=23) |
+| oracle | 100.0% (n=88) | 100.0% (n=26) | 100.0% (n=21) | 100.0% (n=28) | 100.0% (n=27) | 100.0% (n=29) | 100.0% (n=15) | 100.0% (n=21) | 100.0% (n=15) | 100.0% (n=52) | 100.0% (n=26) | 100.0% (n=15) | 100.0% (n=59) | 100.0% (n=16) | 100.0% (n=33) |
+| deepseek-v4-flash | 75.0% (n=88) | 80.8% (n=26) | 85.7% (n=21) | 85.7% (n=28) | 59.3% (n=27) | 89.7% (n=29) | 53.3% (n=15) | 85.7% (n=21) | 100.0% (n=15) | 84.6% (n=52) | 88.5% (n=26) | 93.3% (n=15) | 94.9% (n=59) | 100.0% (n=16) | 84.8% (n=33) |
+| null | 0.0% (n=88) | 0.0% (n=26) | 0.0% (n=21) | 0.0% (n=28) | 0.0% (n=27) | 44.8% (n=29) | 0.0% (n=15) | 9.5% (n=21) | 6.7% (n=15) | 30.8% (n=52) | 3.8% (n=26) | 0.0% (n=15) | 6.8% (n=59) | 0.0% (n=16) | 0.0% (n=33) |
 
 **Cost and speed.** Tokens and cost are summed over the runs of the row; latency is averaged over them.
 
 | model | questions | retries | call errors | mean latency ms | p95 latency ms | mean ttft ms | tokens in | tokens out | tokens reasoning | cost |
 |---|---|---|---|---|---|---|---|---|---|---|
-| oracle | 236 | 0 | 0 | 8 | 9 | 5 | 0 | 0 | 0 | $0.0000 |
-| deepseek-v4-flash | 236 | 0 | 0 | 1130 | 1610 | 800 | 397662 | 13437 | 0 | $0.1501 |
-| null | 236 | 0 | 0 | 8 | 9 | 5 | 0 | 0 | 0 | $0.0000 |
+| oracle | 307 | 0 | 0 | 8 | 9 | 5 | 0 | 0 | 0 | $0.0000 |
+| deepseek-v4-flash | 307 | 0 | 0 | 1149 | 1613 | 817 | 511483 | 18572 | 0 | $0.1760 |
+| null | 307 | 0 | 0 | 8 | 9 | 5 | 0 | 0 | 0 | $0.0000 |
 
-The guarantee held for **100.0%** of the 214 questions that have gold sources, which is a property of the corpus and of these parameters and is the same for every row above. It is a gate, not a metric: the corpus is written until it is 100 percent.
+The guarantee held for **100.0%** of the 277 questions that have gold sources, which is a property of the corpus and of these parameters and is the same for every row above. It is a gate, not a metric: the corpus is written until it is 100 percent.
 
-Every run uses temperature 0 and a 512 token output budget unless the model rejects one of those, in which case models.json records the override:
+Every run uses temperature 0 and a 320 token output budget unless the model rejects one of those, in which case models.json records the override:
 
-- `oracle`: temperature 0, max output tokens 512, 1 run.
-- `null`: temperature 0, max output tokens 512, 1 run.
-- `deepseek-v4-flash`: temperature 0, max output tokens 512, 1 run.
+- `oracle`: temperature 0, max output tokens 320, 1 run.
+- `null`: temperature 0, max output tokens 320, 1 run.
+- `deepseek-v4-flash`: temperature 0, max output tokens 320, 1 run.

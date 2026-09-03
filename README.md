@@ -36,9 +36,15 @@ The budget was set at 190 in January, cut to 165 in March and cut again to 150
 in May. Three later messages repeat an older figure without changing anything, a
 mail quotes 165 under the new number, someone floats 120 for next quarter, and a
 message in June asks whether we are still at 165 rather than saying so. The
-answer is 150, the chain is all three values with the dates they took effect,
-and the sources are the three documents that made the changes and nothing
-else.
+answer is 150 and the chain is all three values with the dates they took effect.
+
+The sources are every document that asserts one of those values in its own
+voice, which on this question is exactly the three that made the changes: the
+mail quotes 165 rather than stating it, the June message asks rather than says,
+and 120 was floated and never decided. On other questions the rule pulls more
+in. Every document that states the answer as it stands is a gold source, so a
+restatement, a second list of the same members and a later note confirming the
+same value all count, and a model that cites one of them is right.
 
 ## The four channels
 
@@ -53,7 +59,7 @@ comparing them. A question is scored on the channels its gold declares.
 | `sources` | every cited id is a gold source and at least one gold source is cited; recall is reported beside it |
 
 `value`, `status` and `sources` are scored on every question. `history` is
-scored only where the gold declares a chain, which it does on 41 of the 236
+scored only where the gold declares a chain, which it does on 61 of the 307
 questions. A pack is **fully correct** when every scored channel is correct.
 
 For an abstain question the gold is `status: not_in_evidence`, `value: null`, an
@@ -66,7 +72,7 @@ answering `not_in_evidence`.
 ## The ten families
 
 The question type, one leaderboard column each. Every family carries at least
-twenty questions; the counts are in [corpus/v1/README.md](corpus/v1/README.md).
+thirty questions; the counts are in [corpus/v1/README.md](corpus/v1/README.md).
 
 | family | asks for | a real one |
 | --- | --- | --- |
@@ -82,7 +88,7 @@ twenty questions; the counts are in [corpus/v1/README.md](corpus/v1/README.md).
 | `abstain` | nothing; the corpus does not support a value | What is the p50 latency budget for the Palisade gateway, in ms? |
 
 Most abstains are hard: the sibling of the asked-for thing is in the window and
-stated plainly. The p99 latency budget is written down six times over; the p50
+stated plainly. The p99 latency budget is written down in eight documents; the p50
 budget never is, and one message says as much without giving a number.
 
 ## The fifteen traps
@@ -112,7 +118,7 @@ Every kind is planted in at least fifteen questions.
 ## The guarantee
 
 For every question, every gold source has at least one chunk in the window the
-frozen pipeline retrieves. The validator runs retrieval for all 214 questions
+frozen pipeline retrieves. The validator runs retrieval for all 277 questions
 that have gold sources and fails on any miss, printing the question id and the
 documents that were not there.
 
@@ -120,11 +126,11 @@ It holds at **100 percent** on this corpus with `top_n` 16. Retrieval hit rates
 therefore do not appear on the leaderboard: the guarantee is a gate, not a
 metric.
 
-Getting there took rewriting, not tuning. The first pass held at 86 percent, and
-every miss was fixed by making a document share the vocabulary a real record
-would share with the question, never by adding an expansion step to the
-pipeline. [corpus/v1/README.md](corpus/v1/README.md) lists what was changed and
-why.
+Getting there took rewriting, not tuning. Every miss was fixed by making a
+document share the vocabulary a real record would share with the question, or by
+rephrasing the question to name what the asker knows, never by adding an
+expansion step to the pipeline. [corpus/v1/README.md](corpus/v1/README.md) lists
+what was changed and why.
 
 The traps still live inside the window. Distractors, stale repeats and
 near-duplicates are retrieved alongside the gold documents; the guarantee is
@@ -133,21 +139,23 @@ that the truth is present, not that it is alone.
 ## The corpus
 
 Wrenfield is an invented company with two products, eighteen people and eight
-customers, written across the first half of 2027. There are 580 documents and
-103,660 characters: 420 Slack messages across twelve channels, 59 reference
-documents, 43 meeting notes, 36 emails, and eleven issues with their comments.
+customers, written across the first half of 2027. There are 691 documents and
+119,676 characters: 520 Slack messages across twelve channels, 63 reference
+documents, 44 meeting notes, 40 emails, and thirteen issues with their comments.
 Most of it is short, the way an archive is. Ten documents are deliberately long
 enough to chunk into three or four pieces, and that is where the `chunk_split`
 questions live. Weekly standups and monthly digests repeat the same template
-with different numbers, and none of them answers anything.
+with different numbers, and none of them answers anything: 254 of the 691
+documents are a gold source for nothing at all.
 
 It is written the way records are written, because artificial gaps make
 artificial retrieval failures. Issues carry a description that names the
 customer and the symptom, emails carry signatures and quoted chains, comments
 say what they change, and questions name what a person asking would know. Values
-sit in ten plain text tables, in numbered lists, in two pasted JSON blocks, in
-two messages with a typo left in, and in seventeen messages in German. The
-clocks go forward on 2027-03-28 and the timezone questions turn on that hour.
+sit in eleven plain text tables, in three numbered lists, in three pasted JSON
+blocks, in two messages with a typo left in, and in nineteen messages in German.
+The clocks go forward on 2027-03-28 and the timezone questions turn on that
+hour.
 
 ## The pipeline and its parameters
 
@@ -174,8 +182,8 @@ rather than to the harness:
 
 `top_n` is the only one that was tuned, and it is where the guarantee and the
 cost cap meet. At 16 the guarantee holds at 100 percent and a full run projects
-at $4.85 for the most expensive model in `models.json`. At 20 the projection is
-$5.19, which the cap refuses.
+at $4.80 for the most expensive model in `models.json`. At 18 the projection is
+a shade over five dollars and at 20 it is $5.22, and the cap refuses both.
 
 ## Scoring
 
@@ -207,21 +215,25 @@ A full run has to project under five dollars for the most expensive model in
 about to send, and bills the full output budget, so it is an upper bound.
 
 For `claude-opus-5` at $5.00 per million input tokens and $25.00 per million
-output tokens, over 236 questions with a 16 chunk window:
+output tokens, over 307 questions with a 16 chunk window:
 
-- input: 365,428 tokens, which is 1,548 per question including the system
-  prompt, at $5.00 per million: **$1.83**
-- output: 236 x 512 tokens of budget at $25.00 per million: **$3.02**
-- total projected: **$4.85**
+- input: 467,965 tokens, which is 1,524 per question including the system
+  prompt, at $5.00 per million: **$2.34**
+- output: 307 x 320 tokens of budget at $25.00 per million: **$2.46**
+- total projected: **$4.80**
 
-The output budget is the larger half, which is why the question count rather
-than the window size is what the cap really binds. The design asks for thirty
-questions per family, cost permitting, and the cost permits twenty.
+The output budget is billed in full whatever the model actually writes, so it is
+where the cap was being wasted. A pack is a small JSON object: on the run below
+the longest reply was 204 output tokens and the 95th percentile was 140, against
+a budget of 512. Cutting the budget to 320 leaves the longest reply half again
+as much room as it needed and buys 71 more questions, which is what took every
+family to the thirty the design asks for.
 
 Actual cost is computed from the token counts the provider reports rather than
-from the estimate. The `deepseek-v4-flash` run below projected $0.32 and cost
-$0.15: the provider counted 397,662 input tokens against the estimator's
-365,428, and the replies used 13,437 output tokens of the 120,832 budgeted.
+from the estimate. The `deepseek-v4-flash` run below projected $0.34 and cost
+$0.18: the provider counted 511,483 input tokens against the estimator's
+467,965, of which 172,800 were cache reads, and the replies used 18,572 output
+tokens of the 98,240 budgeted.
 
 ## Leaderboard
 
@@ -231,47 +243,47 @@ Corpus version **v1**, pipeline hash `c9ff11afc1436a70`, prompt hash `dff88c3a45
 
 The unit is the question: one question, one retrieval, one call, one pack, four channels. A model that has been run more than once on the same corpus and the same parameters is one row, and its cells carry the mean with the min to max spread of those runs.
 
-Scored with scorer hash `45b950d83d952e9d`. Every row is re-scored at report time from the raw replies stored in `items.jsonl`, so a fix to the parser, the normalizer, the scorer or the alias table reaches every run without a paid re-run.
+Scored with scorer hash `4d813bd27519ffe6`. Every row is re-scored at report time from the raw replies stored in `items.jsonl`, so a fix to the parser, the normalizer, the scorer or the alias table reaches every run without a paid re-run.
 
 **Headline.** Macro value accuracy is the mean of value accuracy over the families, so each family weighs the same. A pack is fully correct when every scored channel is correct.
 
 | model | runs | macro value accuracy | packs fully correct | lookup | current | asof | join | multihop | exhaustive | aggregation | temporal | rule | abstain |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| oracle | 1 | 100.0% | 100.0% | 100.0% (n=37) | 100.0% (n=20) | 100.0% (n=20) | 100.0% (n=22) | 100.0% (n=22) | 100.0% (n=21) | 100.0% (n=21) | 100.0% (n=27) | 100.0% (n=24) | 100.0% (n=22) |
-| deepseek-v4-flash | 1 | 86.7% | 40.3% | 100.0% (n=37) | 55.0% (n=20) | 100.0% (n=20) | 90.9% (n=22) | 86.4% (n=22) | 90.5% (n=21) | 90.5% (n=21) | 66.7% (n=27) | 95.8% (n=24) | 90.9% (n=22) |
-| null | 1 | 10.0% | 9.3% | 0.0% (n=37) | 0.0% (n=20) | 0.0% (n=20) | 0.0% (n=22) | 0.0% (n=22) | 0.0% (n=21) | 0.0% (n=21) | 0.0% (n=27) | 0.0% (n=24) | 100.0% (n=22) |
+| oracle | 1 | 100.0% | 100.0% | 100.0% (n=37) | 100.0% (n=30) | 100.0% (n=30) | 100.0% (n=30) | 100.0% (n=30) | 100.0% (n=30) | 100.0% (n=30) | 100.0% (n=30) | 100.0% (n=30) | 100.0% (n=30) |
+| deepseek-v4-flash | 1 | 87.7% | 52.4% | 100.0% (n=37) | 63.3% (n=30) | 90.0% (n=30) | 100.0% (n=30) | 86.7% (n=30) | 96.7% (n=30) | 93.3% (n=30) | 63.3% (n=30) | 96.7% (n=30) | 86.7% (n=30) |
+| null | 1 | 10.0% | 9.8% | 0.0% (n=37) | 0.0% (n=30) | 0.0% (n=30) | 0.0% (n=30) | 0.0% (n=30) | 0.0% (n=30) | 0.0% (n=30) | 0.0% (n=30) | 0.0% (n=30) | 100.0% (n=30) |
 
 **Channels.** Value and status are scored on every question, history only where the gold carries a chain, sources on every question. Sources recall is the share of gold sources cited, averaged over the questions whose gold cites anything.
 
 | model | value | status | history | sources | sources recall |
 |---|---|---|---|---|---|
-| oracle | 100.0% (n=236) | 100.0% (n=236) | 100.0% (n=41) | 100.0% (n=236) | 100.0% |
-| deepseek-v4-flash | 87.3% (n=236) | 97.0% (n=236) | 56.1% (n=41) | 43.6% (n=236) | 82.7% |
-| null | 9.3% (n=236) | 9.3% (n=236) | 0.0% (n=41) | 9.3% (n=236) | 0.0% |
+| oracle | 100.0% (n=307) | 100.0% (n=307) | 100.0% (n=61) | 100.0% (n=307) | 100.0% |
+| deepseek-v4-flash | 87.9% (n=307) | 96.7% (n=307) | 54.1% (n=61) | 57.7% (n=307) | 82.8% |
+| null | 9.8% (n=307) | 9.8% (n=307) | 0.0% (n=61) | 9.8% (n=307) | 0.0% |
 
 **Trap resistance.** The share of the questions carrying that trap whose value channel was correct.
 
 | model | superseded | statement_shaped_question | quoted_email | proposal | retraction | scope | relative_date | unit | timezone | keyword | same_name | planned_vs_done | negation | chunk_split | format |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| oracle | 100.0% (n=59) | 100.0% (n=23) | 100.0% (n=19) | 100.0% (n=23) | 100.0% (n=25) | 100.0% (n=22) | 100.0% (n=15) | 100.0% (n=17) | 100.0% (n=15) | 100.0% (n=30) | 100.0% (n=18) | 100.0% (n=15) | 100.0% (n=31) | 100.0% (n=16) | 100.0% (n=23) |
-| deepseek-v4-flash | 72.9% (n=59) | 73.9% (n=23) | 78.9% (n=19) | 82.6% (n=23) | 68.0% (n=25) | 95.5% (n=22) | 60.0% (n=15) | 94.1% (n=17) | 100.0% (n=15) | 86.7% (n=30) | 88.9% (n=18) | 93.3% (n=15) | 90.3% (n=31) | 100.0% (n=16) | 87.0% (n=23) |
-| null | 0.0% (n=59) | 0.0% (n=23) | 0.0% (n=19) | 0.0% (n=23) | 0.0% (n=25) | 40.9% (n=22) | 0.0% (n=15) | 11.8% (n=17) | 6.7% (n=15) | 36.7% (n=30) | 5.6% (n=18) | 0.0% (n=15) | 6.5% (n=31) | 0.0% (n=16) | 0.0% (n=23) |
+| oracle | 100.0% (n=88) | 100.0% (n=26) | 100.0% (n=21) | 100.0% (n=28) | 100.0% (n=27) | 100.0% (n=29) | 100.0% (n=15) | 100.0% (n=21) | 100.0% (n=15) | 100.0% (n=52) | 100.0% (n=26) | 100.0% (n=15) | 100.0% (n=59) | 100.0% (n=16) | 100.0% (n=33) |
+| deepseek-v4-flash | 75.0% (n=88) | 80.8% (n=26) | 85.7% (n=21) | 85.7% (n=28) | 59.3% (n=27) | 89.7% (n=29) | 53.3% (n=15) | 85.7% (n=21) | 100.0% (n=15) | 84.6% (n=52) | 88.5% (n=26) | 93.3% (n=15) | 94.9% (n=59) | 100.0% (n=16) | 84.8% (n=33) |
+| null | 0.0% (n=88) | 0.0% (n=26) | 0.0% (n=21) | 0.0% (n=28) | 0.0% (n=27) | 44.8% (n=29) | 0.0% (n=15) | 9.5% (n=21) | 6.7% (n=15) | 30.8% (n=52) | 3.8% (n=26) | 0.0% (n=15) | 6.8% (n=59) | 0.0% (n=16) | 0.0% (n=33) |
 
 **Cost and speed.** Tokens and cost are summed over the runs of the row; latency is averaged over them.
 
 | model | questions | retries | call errors | mean latency ms | p95 latency ms | mean ttft ms | tokens in | tokens out | tokens reasoning | cost |
 |---|---|---|---|---|---|---|---|---|---|---|
-| oracle | 236 | 0 | 0 | 8 | 9 | 5 | 0 | 0 | 0 | $0.0000 |
-| deepseek-v4-flash | 236 | 0 | 0 | 1130 | 1610 | 800 | 397662 | 13437 | 0 | $0.1501 |
-| null | 236 | 0 | 0 | 8 | 9 | 5 | 0 | 0 | 0 | $0.0000 |
+| oracle | 307 | 0 | 0 | 8 | 9 | 5 | 0 | 0 | 0 | $0.0000 |
+| deepseek-v4-flash | 307 | 0 | 0 | 1149 | 1613 | 817 | 511483 | 18572 | 0 | $0.1760 |
+| null | 307 | 0 | 0 | 8 | 9 | 5 | 0 | 0 | 0 | $0.0000 |
 
-The guarantee held for **100.0%** of the 214 questions that have gold sources, which is a property of the corpus and of these parameters and is the same for every row above. It is a gate, not a metric: the corpus is written until it is 100 percent.
+The guarantee held for **100.0%** of the 277 questions that have gold sources, which is a property of the corpus and of these parameters and is the same for every row above. It is a gate, not a metric: the corpus is written until it is 100 percent.
 
-Every run uses temperature 0 and a 512 token output budget unless the model rejects one of those, in which case models.json records the override:
+Every run uses temperature 0 and a 320 token output budget unless the model rejects one of those, in which case models.json records the override:
 
-- `oracle`: temperature 0, max output tokens 512, 1 run.
-- `null`: temperature 0, max output tokens 512, 1 run.
-- `deepseek-v4-flash`: temperature 0, max output tokens 512, 1 run.
+- `oracle`: temperature 0, max output tokens 320, 1 run.
+- `null`: temperature 0, max output tokens 320, 1 run.
+- `deepseek-v4-flash`: temperature 0, max output tokens 320, 1 run.
 
 <!-- LEADERBOARD:v1:END -->
 
@@ -346,7 +358,7 @@ Prices are copied from the provider's own published pricing on the date in
 `pricing_verified`. A price that could not be read is `null`, and the runner
 refuses to run an unpriced model unless it is given `--allow-unpriced`.
 
-Every run uses temperature 0 and a 512 token output budget. A model entry may
+Every run uses temperature 0 and a 320 token output budget. A model entry may
 override either only when the provider rejects the fixed value, and the override
 is recorded in `run.json` and shown under the leaderboard.
 
