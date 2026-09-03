@@ -47,7 +47,7 @@ export async function callModel(
       prompt,
       maxOutputTokens: params.max_tokens,
       maxRetries: 2,
-      ...(entry.omitTemperature ? {} : { temperature: params.temperature }),
+      ...(params.temperature === null ? {} : { temperature: params.temperature }),
       ...(entry.providerOptions ? { providerOptions: entry.providerOptions } : {}),
     });
     for await (const delta of result.textStream) {
@@ -141,7 +141,7 @@ export async function runItem(context: RunItemContext, item: Item): Promise<Item
 export function runParamsFor(entry: ModelEntry, retrieval: RetrievalParams): RunParams {
   return {
     ...retrieval,
-    temperature: DEFAULT_TEMPERATURE,
+    temperature: entry.omitTemperature ? null : DEFAULT_TEMPERATURE,
     max_tokens: entry.maxOutputTokens ?? DEFAULT_MAX_OUTPUT_TOKENS,
   };
 }

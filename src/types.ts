@@ -119,7 +119,8 @@ export interface ItemResult {
 }
 
 export interface RunParams extends RetrievalParams {
-  temperature: number;
+  /** null when the provider rejects sampling parameters, so none was sent. */
+  temperature: number | null;
   max_tokens: number;
 }
 
