@@ -1,6 +1,7 @@
 // results.csv: one row per item per run, generated from the items.jsonl files
-// and nothing else. Full prompts and raw outputs stay in the run directories;
-// the CSV carries only scalars plus a compact expected and got object.
+// and nothing else, after those have been re-scored with the current scorer.
+// Full prompts and raw outputs stay in the run directories; the CSV carries only
+// scalars plus a compact expected and got object.
 
 import type { ItemResult, RunMeta } from "../types.js";
 
