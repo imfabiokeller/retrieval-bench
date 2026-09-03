@@ -76,7 +76,8 @@ npm run report -- --version v1
 ```
 
 Keys come from the process environment first, then from a gitignored `.env` in
-the repository root. Key values are never printed, logged or written into
+the repository root, then from the file named by `RETRIEVAL_BENCH_ENV_FILE`.
+There is no other source. Key values are never printed, logged or written into
 results.
 
 Flags: `--limit N` runs only the first N items, `--force` overrides the spend
