@@ -57,6 +57,11 @@ only when the gold carries a chain.
 | `history` | the set of normalized `(value, from)` pairs equals the gold chain exactly; a stale repeat entered as a new step, a missing step or an extra step all fail |
 | `sources` | every cited id is a gold document and at least one gold document is cited; recall is reported as a number beside it |
 
+A gold source is every document that asserts, in its own voice, the gold value,
+a counted or listed member of it, or a step of its scored chain, as true; a
+proposal, a question, a retraction, a document that asserts a superseded value
+as if it were current, and a line quoted inside a reply are never gold sources.
+
 A pack is fully correct when every scored channel is correct. For an
 abstention the gold is `status: not_in_evidence`, `value: null`, `history: []`,
 `sources: []`, and citing anything fails the sources channel.
