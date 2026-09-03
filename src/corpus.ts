@@ -4,7 +4,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { Aliases } from "./normalize.js";
-import type { Doc, Item, RetrievalParams } from "./types.js";
+import type { Doc, Question, RetrievalParams } from "./types.js";
 
 export const REPO_ROOT = fileURLToPath(new URL("..", import.meta.url));
 
@@ -23,8 +23,8 @@ export function loadDocs(version: string): Doc[] {
   return readJsonl<Doc>(join(corpusDir(version), "docs.jsonl"));
 }
 
-export function loadItems(version: string): Item[] {
-  return readJsonl<Item>(join(corpusDir(version), "items.jsonl"));
+export function loadQuestions(version: string): Question[] {
+  return readJsonl<Question>(join(corpusDir(version), "items.jsonl"));
 }
 
 export function loadAliases(version: string): Aliases {
@@ -35,11 +35,10 @@ export function loadAliases(version: string): Aliases {
 }
 
 /**
- * Retrieval parameters belong to the corpus version, not to the harness: v2
- * asks broader questions over a larger corpus and reads 12 chunks where v1 reads
- * 8. corpus/<version>/params.json holds them, and a version without that file
- * falls back to the v1 values so an older corpus keeps the pipeline it was
- * published with.
+ * Retrieval parameters belong to the corpus version, not to the harness: the
+ * window has to be wide enough for the guarantee on that corpus and narrow
+ * enough for the cost cap on it. corpus/<version>/params.json holds them, and a
+ * version without that file falls back to the defaults in retrieve.ts.
  */
 export function loadRetrievalParams(version: string, fallback: RetrievalParams): RetrievalParams {
   const path = join(corpusDir(version), "params.json");

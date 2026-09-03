@@ -16,61 +16,112 @@ export interface Doc {
   text: string;
 }
 
-export type FieldType = "string" | "number" | "date" | "time" | "boolean" | "string[]";
+/** The declared type of one question's answer. The pack is the schema; this types its `value`. */
+export type AnswerType = "string" | "number" | "date" | "time" | "boolean" | "string[]";
 
-export interface ItemSchema {
-  type: "object";
-  properties: Record<string, { type: FieldType }>;
-  required: string[];
-  additionalProperties: false;
-}
-
-export type Axis =
-  | "entities"
-  | "facts"
-  | "supersession"
-  | "conflict"
-  | "abstain"
+/** The question type. One leaderboard column each. */
+export type Family =
+  | "lookup"
+  | "current"
   | "asof"
   | "join"
+  | "multihop"
   | "exhaustive"
-  | "aggregation";
+  | "aggregation"
+  | "temporal"
+  | "rule"
+  | "abstain";
 
-export type FieldValue = string | number | boolean | string[] | null;
+/** What is planted in the evidence. An annotation any question can carry, scored as resistance. */
+export type Trap =
+  | "superseded"
+  | "statement_shaped_question"
+  | "quoted_email"
+  | "proposal"
+  | "retraction"
+  | "scope"
+  | "relative_date"
+  | "unit"
+  | "timezone"
+  | "keyword"
+  | "same_name"
+  | "planned_vs_done"
+  | "negation"
+  | "chunk_split"
+  | "format";
 
-/**
- * What one field of a case is being asked to do, and which documents support
- * it. Kept out of `schema` on purpose: the schema is rendered into the prompt,
- * and neither the axis nor the gold documents may reach the model.
- */
-export interface FieldMeta {
-  axis: Axis;
-  gold_doc_ids: string[];
+export const FAMILIES: Family[] = [
+  "lookup",
+  "current",
+  "asof",
+  "join",
+  "multihop",
+  "exhaustive",
+  "aggregation",
+  "temporal",
+  "rule",
+  "abstain",
+];
+
+export const TRAPS: Trap[] = [
+  "superseded",
+  "statement_shaped_question",
+  "quoted_email",
+  "proposal",
+  "retraction",
+  "scope",
+  "relative_date",
+  "unit",
+  "timezone",
+  "keyword",
+  "same_name",
+  "planned_vs_done",
+  "negation",
+  "chunk_split",
+  "format",
+];
+
+export type AnswerValue = string | number | boolean | string[] | null;
+
+export type Status = "answered" | "not_in_evidence";
+
+/** One step of a chain: the value, and the date it took effect. */
+export interface HistoryStep {
+  value: AnswerValue;
+  /** YYYY-MM-DD. */
+  from: string;
 }
 
 /**
- * One question, one retrieval, one model call, one object. Every field carries
- * its own axis and its own gold documents in `fields`.
- *
- * A v1 item has no `fields`: its fields all inherit the item-level `axis` and
- * `gold_doc_ids`, which is what keeps v1 items valid and v1 runs re-scorable.
- * Resolve a field with `fieldMeta()` in fields.ts rather than reading either
- * shape directly.
+ * The reply shape, which is also the gold shape. There are no per-question
+ * schemas and no field names: the pack is the schema.
  */
-export interface Item {
+export interface Pack {
+  status: Status;
+  value: AnswerValue;
+  history: HistoryStep[];
+  sources: string[];
+}
+
+export interface Gold extends Pack {
+  /**
+   * Whether the `history` channel is scored for this question. Stated rather
+   * than inferred from an empty chain, so "this thing never changed" and "this
+   * chain is not part of the answer" are two different declarations.
+   */
+  history_scored: boolean;
+}
+
+/** One question, one retrieval, one call, one pack. */
+export interface Question {
   id: string;
-  /** The case-level axis. With per-field axes it is the headline, not the score. */
-  axis: Axis;
+  family: Family;
   question: string;
-  schema: ItemSchema;
-  expected: Record<string, FieldValue>;
-  /** The union of the per-field gold documents when `fields` is present. */
-  gold_doc_ids: string[];
+  answer_type: AnswerType;
+  traps: Trap[];
+  gold: Gold;
+  /** Why the answer is the answer. Never shown to the model. */
   notes: string;
-  /** Per-field axis and gold documents. Absent in v1. */
-  fields?: Record<string, FieldMeta>;
-  /** Set on a single-field twin item: the id of the case that asks the same field among others. */
-  twin_of?: string;
 }
 
 export interface Chunk {
@@ -121,40 +172,38 @@ export interface Retrieved {
   vector_rank: number | null;
 }
 
-export interface FieldResult {
-  field: string;
-  /** The field's own axis, which is what the per-axis leaderboard numbers count. */
-  axis: Axis;
-  expected: FieldValue;
-  got: FieldValue;
+/** One channel of one pack, scored. `scored` is false for a channel this question does not declare. */
+export interface ChannelResult {
+  scored: boolean;
   correct: boolean;
-  /** Whether any retrieved chunk came from one of this field's gold documents. Null when it has none. */
-  retrieval_hit: boolean | null;
-  /**
-   * Whether EVERY gold document of this field had a chunk in the retrieved set.
-   * Null when it has none. This is the flag the reading number is conditioned
-   * on: a field whose answer needs two documents and got one of them was not
-   * handed the evidence, however loudly the any-doc flag says it was.
-   */
-  retrieval_full: boolean | null;
+}
+
+export interface Scored {
+  value: ChannelResult;
+  status: ChannelResult;
+  history: ChannelResult;
+  sources: ChannelResult;
+  /** Gold sources cited over gold sources, or null when the gold cites none. */
+  sources_recall: number | null;
+  /** Every scored channel correct. */
+  fully_correct: boolean;
 }
 
 export interface ItemResult {
   item_id: string;
-  /** The case-level axis. Per-field axes are on the field rows. */
-  axis: Axis;
-  /** The case this single-field twin repeats one field of, or null. */
-  twin_of?: string | null;
+  family: Family;
+  traps: Trap[];
   question: string;
+  answer_type: AnswerType;
   retrieved_chunk_ids: string[];
   retrieved_doc_ids: string[];
-  retrieval_hit: boolean | null;
+  /** Whether every gold source had a chunk in the window. Null when the question has no gold sources. */
+  guarantee_met: boolean | null;
   prompt: string;
   raw_output: string;
-  parsed: Record<string, FieldValue> | null;
-  expected: Record<string, FieldValue>;
-  fields: FieldResult[];
-  correct: boolean;
+  parsed: Pack | null;
+  gold: Gold;
+  scored: Scored;
   latency_ms: number;
   ttft_ms: number | null;
   tokens_in: number | null;
@@ -183,14 +232,16 @@ export interface RunMeta {
   corpus_version: string;
   pipeline_hash: string;
   prompt_hash: string;
+  params_hash: string;
   git_commit: string | null;
   started_at: string;
   finished_at: string;
   item_count: number;
+  /** Which repeat of the same model on the same corpus and parameters this is, 1-based. */
+  run_index: number;
   /** The score as the run itself computed it. The report re-scores from raw_output and may differ. */
-  correct_count_at_run: number;
-  accuracy_at_run: number;
-  retrieval_hit_rate: number | null;
+  packs_fully_correct_at_run: number;
+  pack_accuracy_at_run: number;
   projected_cost_usd: number | null;
   actual_cost_usd: number | null;
   tokens_in: number;
