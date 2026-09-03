@@ -158,10 +158,11 @@ prompt is hashed and recorded on every run.
 
 ## Leaderboard
 
-Headline pair: the macro average of value accuracy over families (each family
-weighs the same, so saturated families cannot carry the score) and the share of
-packs fully correct. Beside them: one column per family, one per channel, one
-per trap kind, retries, latency, time to first token, tokens, cost.
+The score is one number: the share of packs fully correct, every scored
+channel right at once. Rows are ordered by it. Beside it: the macro average of
+value accuracy over families (each family weighs the same, so saturated families
+cannot carry it), then one column per family, one per channel, one per trap
+kind, retries, latency, time to first token, tokens, cost.
 
 When a model has more than one run on the same corpus and parameters, the row
 shows the mean and the min to max spread.

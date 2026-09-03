@@ -8,13 +8,13 @@ The unit is the question: one question, one retrieval, one call, one pack, four 
 
 Scored with scorer hash `4d813bd27519ffe6`. Every row is re-scored at report time from the raw replies stored in `items.jsonl`, so a fix to the parser, the normalizer, the scorer or the alias table reaches every run without a paid re-run.
 
-**Headline.** Macro value accuracy is the mean of value accuracy over the families, so each family weighs the same. A pack is fully correct when every scored channel is correct.
+**Score.** The share of packs fully correct: the value, the status, the chain where one is scored and the citations all right at once. Rows are ordered by it. Macro value accuracy beside it is the mean of value accuracy over the families, so each family weighs the same.
 
-| model | runs | macro value accuracy | packs fully correct | lookup | current | asof | join | multihop | exhaustive | aggregation | temporal | rule | abstain |
+| model | runs | score | macro value accuracy | lookup | current | asof | join | multihop | exhaustive | aggregation | temporal | rule | abstain |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | oracle | 1 | 100.0% | 100.0% | 100.0% (n=37) | 100.0% (n=30) | 100.0% (n=30) | 100.0% (n=30) | 100.0% (n=30) | 100.0% (n=30) | 100.0% (n=30) | 100.0% (n=30) | 100.0% (n=30) | 100.0% (n=30) |
-| deepseek-v4-flash | 1 | 87.7% | 52.4% | 100.0% (n=37) | 63.3% (n=30) | 90.0% (n=30) | 100.0% (n=30) | 86.7% (n=30) | 96.7% (n=30) | 93.3% (n=30) | 63.3% (n=30) | 96.7% (n=30) | 86.7% (n=30) |
-| null | 1 | 10.0% | 9.8% | 0.0% (n=37) | 0.0% (n=30) | 0.0% (n=30) | 0.0% (n=30) | 0.0% (n=30) | 0.0% (n=30) | 0.0% (n=30) | 0.0% (n=30) | 0.0% (n=30) | 100.0% (n=30) |
+| deepseek-v4-flash | 1 | 52.4% | 87.7% | 100.0% (n=37) | 63.3% (n=30) | 90.0% (n=30) | 100.0% (n=30) | 86.7% (n=30) | 96.7% (n=30) | 93.3% (n=30) | 63.3% (n=30) | 96.7% (n=30) | 86.7% (n=30) |
+| null | 1 | 9.8% | 10.0% | 0.0% (n=37) | 0.0% (n=30) | 0.0% (n=30) | 0.0% (n=30) | 0.0% (n=30) | 0.0% (n=30) | 0.0% (n=30) | 0.0% (n=30) | 0.0% (n=30) | 100.0% (n=30) |
 
 **Channels.** Value and status are scored on every question, history only where the gold carries a chain, sources on every question. Sources recall is the share of gold sources cited, averaged over the questions whose gold cites anything.
 

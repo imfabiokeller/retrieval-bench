@@ -3,13 +3,13 @@
 // between the marker comments.
 //
 // The unit is the question. One question is one pack, and a pack is scored on
-// four channels, so there are two headline numbers and no single accuracy:
+// four channels. The score is one number:
 //
-//   macro value accuracy   the mean of value accuracy over the ten families, so
-//                          each family weighs the same and a saturated family
-//                          cannot carry the score
-//   packs fully correct    the share of questions where every scored channel was
-//                          correct
+//   score                  the share of questions whose pack was fully correct,
+//                          every scored channel right at once
+//   macro value accuracy   beside it, the mean of value accuracy over the ten
+//                          families, so each family weighs the same and a
+//                          saturated family cannot carry it
 //
 // Beside them: one column per family, one per channel, one per trap kind, then
 // retries, latency, time to first token, tokens and cost.
@@ -205,18 +205,20 @@ function sumOf(row: ModelRow, pick: (summary: RunSummary) => number): number {
 
 function renderGroup(rows: ModelRow[], label: string, hash: string, headed: boolean): string[] {
   const ordered = [...rows].sort(
-    (a, b) => mean(b.runs.map((run) => run.macroValue)) - mean(a.runs.map((run) => run.macroValue)) || a.model.localeCompare(b.model),
+    (a, b) =>
+      mean(b.runs.map((run) => run.packsFullyCorrect)) - mean(a.runs.map((run) => run.packsFullyCorrect)) ||
+      a.model.localeCompare(b.model),
   );
   const families = FAMILIES.filter((family) => ordered.some((row) => row.runs[0]?.perFamily[family].n));
   const traps = TRAPS.filter((trap) => ordered.some((row) => row.runs[0]?.perTrap[trap].n));
 
   const headline = table(
-    ["model", "runs", "macro value accuracy", "packs fully correct", ...families],
+    ["model", "runs", "score", "macro value accuracy", ...families],
     ordered.map((row) => [
       row.model,
       String(row.runs.length),
-      spread(row.runs.map((run) => run.macroValue), null),
       spread(row.runs.map((run) => run.packsFullyCorrect), null),
+      spread(row.runs.map((run) => run.macroValue), null),
       ...families.map((family) => rateCell(row, (run) => run.perFamily[family])),
     ]),
   );
@@ -259,7 +261,7 @@ function renderGroup(rows: ModelRow[], label: string, hash: string, headed: bool
 
   return [
     ...(headed ? [`### Retrieval parameters \`${hash}\`: ${label}`, ""] : []),
-    "**Headline.** Macro value accuracy is the mean of value accuracy over the families, so each family weighs the same. A pack is fully correct when every scored channel is correct.",
+    "**Score.** The share of packs fully correct: the value, the status, the chain where one is scored and the citations all right at once. Rows are ordered by it. Macro value accuracy beside it is the mean of value accuracy over the families, so each family weighs the same.",
     "",
     ...headline,
     "",

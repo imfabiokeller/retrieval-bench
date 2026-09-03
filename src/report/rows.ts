@@ -6,6 +6,7 @@
 // Every leaderboard number is recomputable from this file:
 //
 //   value accuracy          value_correct over every row
+//   score                   the share of packs fully correct
 //   macro value accuracy    value_correct grouped by family, then averaged over families
 //   packs fully correct     fully_correct over every row
 //   per-channel accuracy    status_correct, history_correct (where history_scored),
