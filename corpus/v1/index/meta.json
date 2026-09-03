@@ -3,10 +3,10 @@
   "embedding_model": "gemini-embedding-001",
   "embedding_endpoint": "google generative ai (@ai-sdk/google)",
   "dims": 768,
-  "chunk_count": 559,
-  "doc_count": 531,
-  "query_count": 235,
+  "chunk_count": 608,
+  "doc_count": 580,
+  "query_count": 236,
   "embedding_tokens": null,
-  "built_at": "2026-09-03T21:34:10.999Z",
+  "built_at": "2026-09-03T21:47:41.289Z",
   "chunk_target_chars": 500
 }
