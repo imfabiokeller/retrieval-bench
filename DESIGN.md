@@ -129,12 +129,13 @@ artificial retrieval failures:
   incident, customer or metric they concern.
 - Comments say what they change ("reassigning to Priya, raising to urgent").
 - Emails name the contract or quote they concern.
-- Slack threads have parents that carry the value and replies that agree.
+- Slack exchanges are consecutive messages in a channel: the value sits in one
+  message and a later one agrees with it. No thread ids are set.
 - Questions are phrased the way a person asks, naming what they know (the issue
   title, the customer, the metric), not avoiding it.
 
 Invented company, invented people, nothing real. Small parts of many document
-types: Slack across channels with threads, issues with comments, emails with
+types: Slack across channels, issues with comments, emails with
 quoted chains, meeting notes, decision notes, reference lists, a policy doc, a
 few longer documents that chunk in two, template noise (weekly standups and
 monthly digests with the same shape and different numbers), near-duplicate
