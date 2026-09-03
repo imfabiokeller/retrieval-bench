@@ -25,10 +25,10 @@ async function main(): Promise<void> {
   console.log(`embedding with ${EMBEDDING_MODEL} at ${EMBEDDING_DIMS} dims`);
 
   const documents = await embedTexts(chunks.map((chunk) => chunk.text), "RETRIEVAL_DOCUMENT");
-  console.log(`chunk vectors: ${documents.vectors.length}, embedding tokens: ${documents.tokens}`);
+  console.log(`chunk vectors: ${documents.vectors.length}, embedding tokens: ${documents.tokens ?? "not reported"}`);
 
   const queries = await embedTexts(items.map((item) => item.question), "RETRIEVAL_QUERY");
-  console.log(`query vectors: ${queries.vectors.length}, embedding tokens: ${queries.tokens}`);
+  console.log(`query vectors: ${queries.vectors.length}, embedding tokens: ${queries.tokens ?? "not reported"}`);
 
   writeIndex(version, {
     chunks,
@@ -43,12 +43,12 @@ async function main(): Promise<void> {
       chunk_count: chunks.length,
       doc_count: docs.length,
       query_count: items.length,
-      embedding_tokens: documents.tokens + queries.tokens,
+      embedding_tokens: documents.tokens === null && queries.tokens === null ? null : (documents.tokens ?? 0) + (queries.tokens ?? 0),
       built_at: new Date().toISOString(),
       chunk_target_chars: CHUNK_TARGET_CHARS,
     },
   });
-  console.log(`wrote corpus/${version}/index (total embedding tokens: ${documents.tokens + queries.tokens})`);
+  console.log(`wrote corpus/${version}/index`);
 }
 
 await main();

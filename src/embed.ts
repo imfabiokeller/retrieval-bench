@@ -24,14 +24,15 @@ export function normalizeVector(vector: number[]): number[] {
 
 export interface EmbedResult {
   vectors: number[][];
-  tokens: number;
+  /** null when the provider reported no usage for any batch. */
+  tokens: number | null;
 }
 
 export async function embedTexts(texts: string[], taskType: "RETRIEVAL_DOCUMENT" | "RETRIEVAL_QUERY"): Promise<EmbedResult> {
   const google = createGoogleGenerativeAI({ apiKey: requireKey(EMBEDDING_KEY_VAR) });
   const model = google.textEmbeddingModel(EMBEDDING_MODEL);
   const vectors: number[][] = [];
-  let tokens = 0;
+  let tokens: number | null = null;
   for (let start = 0; start < texts.length; start += BATCH) {
     const slice = texts.slice(start, start + BATCH);
     const result = await embedMany({
@@ -41,7 +42,8 @@ export async function embedTexts(texts: string[], taskType: "RETRIEVAL_DOCUMENT"
       providerOptions: { google: { outputDimensionality: EMBEDDING_DIMS, taskType } },
     });
     for (const embedding of result.embeddings) vectors.push(normalizeVector([...embedding]));
-    tokens += result.usage?.tokens ?? 0;
+    const reported = result.usage?.tokens;
+    if (typeof reported === "number" && Number.isFinite(reported)) tokens = (tokens ?? 0) + reported;
   }
   return { vectors, tokens };
 }

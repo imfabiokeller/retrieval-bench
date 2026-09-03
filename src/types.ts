@@ -66,7 +66,8 @@ export interface IndexMeta {
   chunk_count: number;
   doc_count: number;
   query_count: number;
-  embedding_tokens: number;
+  /** null when the provider did not report embedding token usage. */
+  embedding_tokens: number | null;
   built_at: string;
   chunk_target_chars: number;
 }

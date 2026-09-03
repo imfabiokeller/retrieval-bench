@@ -2,6 +2,7 @@
 
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
+import type { JSONValue } from "@ai-sdk/provider";
 import { REPO_ROOT } from "./corpus.js";
 
 export interface Pricing {
@@ -19,7 +20,7 @@ export interface ModelEntry {
   /** openai-compatible only. */
   baseURL?: string;
   apiKeyEnv?: string;
-  providerOptions?: Record<string, Record<string, unknown>>;
+  providerOptions?: Record<string, Record<string, JSONValue>>;
   /** Set when the provider rejects sampling parameters. */
   omitTemperature?: boolean;
   /** Set when the fixed 512 token output budget does not work for this model. */
