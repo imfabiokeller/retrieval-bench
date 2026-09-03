@@ -2,7 +2,14 @@
 
 import { strict as assert } from "node:assert";
 import { test } from "node:test";
-import { fieldAxis, fieldGoldDocIds, fieldMeta, fieldRetrievalHit, goldDocIdsOf } from "../src/fields.js";
+import {
+  fieldAxis,
+  fieldGoldDocIds,
+  fieldMeta,
+  fieldRetrievalFull,
+  fieldRetrievalHit,
+  goldDocIdsOf,
+} from "../src/fields.js";
 import { scoreItem } from "../src/score.js";
 import { validateCorpus } from "../src/validate.js";
 import type { Doc, Item } from "../src/types.js";
@@ -66,11 +73,24 @@ test("the retrieval hit flag is per field, and null for a field with no gold doc
   assert.equal(fieldRetrievalHit(v2Case, "credits_eur", ["doc-1"]), null);
 });
 
-test("scoring puts the field axis and the field hit flag on every field row", () => {
+test("the full-retrieval flag needs every gold document, not just one of them", () => {
+  assert.equal(fieldRetrievalFull(v2Case, "owner", ["doc-2"]), false, "one of the two documents is not all of them");
+  assert.equal(fieldRetrievalHit(v2Case, "owner", ["doc-2"]), true, "the any-doc flag calls the same field a hit");
+  assert.equal(fieldRetrievalFull(v2Case, "owner", ["doc-2", "doc-3", "doc-9"]), true);
+  assert.equal(fieldRetrievalFull(v2Case, "p99_ms", ["doc-1"]), true, "a one-document field is full as soon as it hits");
+  assert.equal(fieldRetrievalFull(v2Case, "credits_eur", ["doc-1"]), null, "no gold documents, no flag");
+});
+
+test("scoring puts the field axis and both retrieval flags on every field row", () => {
   const scored = scoreItem(v2Case, { p99_ms: 180, owner: "dan", credits_eur: null }, { dan: "dan okonkwo" }, ["doc-1"]);
   assert.equal(scored.correct, true);
   assert.deepEqual(scored.fields.map((field) => field.axis), ["asof", "join", "abstain"]);
   assert.deepEqual(scored.fields.map((field) => field.retrieval_hit), [true, false, null]);
+  assert.deepEqual(scored.fields.map((field) => field.retrieval_full), [true, false, null]);
+
+  const half = scoreItem(v2Case, { p99_ms: 180, owner: "dan", credits_eur: null }, { dan: "dan okonkwo" }, ["doc-2"]);
+  assert.deepEqual(half.fields.map((field) => field.retrieval_hit), [false, true, null]);
+  assert.deepEqual(half.fields.map((field) => field.retrieval_full), [false, false, null], "half a join is not a hit");
 });
 
 const docs: Doc[] = ["doc-1", "doc-2", "doc-3"].map((id) => ({

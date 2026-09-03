@@ -28,7 +28,7 @@ function stored(overrides: Partial<ItemResult>): ItemResult {
     raw_output: '{"mode":"compliance mode"}',
     parsed: { mode: "compliance mode" },
     expected: { mode: "compliance" },
-    fields: [{ field: "mode", axis: "facts", expected: "compliance", got: "compliance mode", correct: false, retrieval_hit: true }],
+    fields: [{ field: "mode", axis: "facts", expected: "compliance", got: "compliance mode", correct: false, retrieval_hit: true, retrieval_full: true }],
     correct: false,
     latency_ms: 1200,
     ttft_ms: 400,
@@ -66,7 +66,7 @@ test("a time answer stored with its zone word scores under the time type", () =>
     raw_output: '{"start_utc":"09:41 UTC"}',
     parsed: { start_utc: "09:41 UTC" },
     expected: { start_utc: "09:41" },
-    fields: [{ field: "start_utc", axis: "facts", expected: "09:41", got: "09:41 utc", correct: false, retrieval_hit: true }],
+    fields: [{ field: "start_utc", axis: "facts", expected: "09:41", got: "09:41 utc", correct: false, retrieval_hit: true, retrieval_full: true }],
     correct: false,
   });
   const result = rescoreItems([timed], corpus, aliases);

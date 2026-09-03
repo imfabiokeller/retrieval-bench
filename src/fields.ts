@@ -52,3 +52,19 @@ export function fieldRetrievalHit(item: Item, field: string, retrievedDocIds: st
   const retrieved = new Set(retrievedDocIds);
   return gold.some((id) => retrieved.has(id));
 }
+
+/**
+ * True when EVERY gold document of this field is in the retrieved set. Null when
+ * the field has none, on the same reasoning as the any-doc flag.
+ *
+ * This is the flag that separates reading from retrieving. A join, exhaustive or
+ * aggregation field is only answerable when all of its gold documents are there,
+ * so the any-doc flag reports it as evidence-in-hand while the model was in fact
+ * handed half the answer.
+ */
+export function fieldRetrievalFull(item: Item, field: string, retrievedDocIds: string[]): boolean | null {
+  const gold = fieldGoldDocIds(item, field);
+  if (gold.length === 0) return null;
+  const retrieved = new Set(retrievedDocIds);
+  return gold.every((id) => retrieved.has(id));
+}

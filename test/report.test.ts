@@ -12,8 +12,14 @@ import { CSV_COLUMNS, toCsv } from "../src/report/rows.js";
 import type { RunBundle } from "../src/report/rows.js";
 import type { Axis, FieldResult, ItemResult, RunMeta } from "../src/types.js";
 
-function field(name: string, axis: Axis, correct: boolean, hit: boolean | null = true): FieldResult {
-  return { field: name, axis, expected: 1, got: correct ? 1 : 2, correct, retrieval_hit: hit };
+function field(
+  name: string,
+  axis: Axis,
+  correct: boolean,
+  hit: boolean | null = true,
+  full: boolean | null = hit,
+): FieldResult {
+  return { field: name, axis, expected: 1, got: correct ? 1 : 2, correct, retrieval_hit: hit, retrieval_full: full };
 }
 
 function item(id: string, axis: Axis, fields: FieldResult[], overrides: Partial<ItemResult> = {}): ItemResult {

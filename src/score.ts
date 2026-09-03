@@ -10,7 +10,7 @@
 // leaderboard counts fields, not items, so this is where its per-axis numbers
 // come from.
 
-import { fieldAxis, fieldRetrievalHit } from "./fields.js";
+import { fieldAxis, fieldRetrievalFull, fieldRetrievalHit } from "./fields.js";
 import { normalizeField } from "./normalize.js";
 import type { Aliases } from "./normalize.js";
 import type { FieldResult, FieldValue, Item } from "./types.js";
@@ -22,8 +22,9 @@ export interface Scored {
 
 /**
  * `retrievedDocIds` is what the retrieval actually returned for this case, and
- * it is only used to set the per-field hit flag. An empty list means nothing
- * was retrieved, so every field with gold documents records a miss.
+ * it is only used to set the two per-field retrieval flags. An empty list means
+ * nothing was retrieved, so every field with gold documents records a miss on
+ * both.
  */
 export function scoreItem(
   item: Item,
@@ -43,6 +44,7 @@ export function scoreItem(
       got: got.value,
       correct: parsed !== null && expected.key === got.key,
       retrieval_hit: fieldRetrievalHit(item, name, retrievedDocIds),
+      retrieval_full: fieldRetrievalFull(item, name, retrievedDocIds),
     });
   }
   return { fields, correct: fields.length > 0 && fields.every((field) => field.correct) };

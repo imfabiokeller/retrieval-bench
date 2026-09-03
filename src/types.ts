@@ -130,6 +130,13 @@ export interface FieldResult {
   correct: boolean;
   /** Whether any retrieved chunk came from one of this field's gold documents. Null when it has none. */
   retrieval_hit: boolean | null;
+  /**
+   * Whether EVERY gold document of this field had a chunk in the retrieved set.
+   * Null when it has none. This is the flag the reading number is conditioned
+   * on: a field whose answer needs two documents and got one of them was not
+   * handed the evidence, however loudly the any-doc flag says it was.
+   */
+  retrieval_full: boolean | null;
 }
 
 export interface ItemResult {
