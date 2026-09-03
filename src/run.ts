@@ -18,7 +18,7 @@ import { scorePack } from "./score.js";
 import type { ItemResult, Question, RetrievalParams, Retrieved, RunParams } from "./types.js";
 
 export const DEFAULT_TEMPERATURE = 0;
-export const DEFAULT_MAX_OUTPUT_TOKENS = 512;
+export const DEFAULT_MAX_OUTPUT_TOKENS = 320;
 
 export { PROMPT_HASH };
 

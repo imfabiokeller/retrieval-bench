@@ -8,7 +8,7 @@ import { CSV_COLUMNS, toCsv } from "../src/report/rows.js";
 import type { RunBundle } from "../src/report/rows.js";
 import type { Family, ItemResult, RunMeta, Scored, Trap } from "../src/types.js";
 
-const params = { top_n: 16, rrf_k: 60, recency_weight: 0.1, max_chunks_per_doc: 2, temperature: 0, max_tokens: 512 };
+const params = { top_n: 16, rrf_k: 60, recency_weight: 0.1, max_chunks_per_doc: 2, temperature: 0, max_tokens: 320 };
 
 function meta(overrides: Partial<RunMeta> = {}): RunMeta {
   return {

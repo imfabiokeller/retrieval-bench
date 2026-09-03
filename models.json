@@ -7,7 +7,7 @@
     "run a model with a null input or output price unless it is given --allow-unpriced.",
     "cached_input_per_mtok is null wherever the cached-read rate was not verified; the",
     "cost estimate then bills cached tokens at the full input rate, which is an upper bound.",
-    "params: the run uses temperature 0 and max_tokens 512 for every model. A model entry",
+    "params: the run uses temperature 0 and max_tokens 320 for every model. A model entry",
     "may override that only when the provider rejects the fixed value, and the override is",
     "recorded in run.json and shown in the leaderboard notes."
   ],
@@ -21,7 +21,7 @@
       "omitTemperature": true,
       "pricing": { "input_per_mtok": 5.0, "output_per_mtok": 25.0, "cached_input_per_mtok": null },
       "pricing_verified": "2026-09-03",
-      "notes": "Sampling parameters are rejected by this model, so temperature is omitted. Thinking is on by default and is turned off so the 512 token output budget is spent on the answer."
+      "notes": "Sampling parameters are rejected by this model, so temperature is omitted. Thinking is on by default and is turned off so the 320 token output budget is spent on the answer."
     },
     {
       "name": "claude-sonnet-5",
@@ -53,7 +53,7 @@
       "providerOptions": { "deepseek": { "thinking": { "type": "disabled" } } },
       "pricing": { "input_per_mtok": 0.44, "output_per_mtok": 1.32, "cached_input_per_mtok": 0.014 },
       "pricing_verified": "2026-09-03",
-      "notes": "DeepSeek prices differ between peak and off-peak hours. The peak rate is recorded here so every estimate is an upper bound; off-peak is half. Thinking is on by default, and api-docs.deepseek.com documents thinking as a request body object on POST /chat/completions with type enabled or disabled, so it is set to disabled here: with it enabled the model spent the whole 512 token output budget on reasoning and returned no text."
+      "notes": "DeepSeek prices differ between peak and off-peak hours. The peak rate is recorded here so every estimate is an upper bound; off-peak is half. Thinking is on by default, and api-docs.deepseek.com documents thinking as a request body object on POST /chat/completions with type enabled or disabled, so it is set to disabled here: with it enabled the model spent the whole output budget on reasoning and returned no text."
     },
     {
       "name": "qwen-plus",

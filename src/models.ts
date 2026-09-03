@@ -23,7 +23,7 @@ export interface ModelEntry {
   providerOptions?: Record<string, Record<string, JSONValue>>;
   /** Set when the provider rejects sampling parameters. */
   omitTemperature?: boolean;
-  /** Set when the fixed 512 token output budget does not work for this model. */
+  /** Set when the fixed 320 token output budget does not work for this model. */
   maxOutputTokens?: number;
   pricing: Pricing;
   pricing_verified: string | null;

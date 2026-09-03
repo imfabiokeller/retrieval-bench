@@ -312,7 +312,7 @@ export function renderLeaderboard(bundles: RunBundle[], scorerHash: string): str
   const tail = [
     ...(drifted.length === 0 ? [] : ["", "Runs whose score moved when they were re-scored:", "", ...drifted]),
     "",
-    "Every run uses temperature 0 and a 512 token output budget unless the model rejects one of those, in which case models.json records the override:",
+    "Every run uses temperature 0 and a 320 token output budget unless the model rejects one of those, in which case models.json records the override:",
     "",
     ...rows.map((row) => {
       const run = row.runs[0]!;
