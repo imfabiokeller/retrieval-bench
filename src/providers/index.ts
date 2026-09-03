@@ -8,7 +8,15 @@
 //
 // Provider-specific request fields live in models.json under providerOptions
 // and are passed through untouched, which is how DashScope gets
-// enable_thinking:false and Anthropic gets thinking disabled.
+// enable_thinking:false, DeepSeek gets thinking:{type:"disabled"} and Anthropic
+// gets thinking disabled.
+//
+// For openai-compatible that pass-through is not a promise this repo makes, it
+// is a property of the provider package: @ai-sdk/openai-compatible spreads every
+// key of providerOptions[<provider name>] into the JSON request body, skipping
+// only the four keys of its own options schema (user, reasoningEffort,
+// textVerbosity, strictJsonSchema). No extraBody wrapper is needed, and
+// test/request-body.test.ts pins that behaviour against a captured request.
 
 import { createAnthropic } from "@ai-sdk/anthropic";
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
@@ -25,7 +33,12 @@ export interface ModelFactory {
   billable: boolean;
 }
 
-export function createModelFactory(entry: ModelEntry): ModelFactory {
+export interface FactoryOptions {
+  /** Injected by the tests to capture the outgoing request without a network call. */
+  fetch?: typeof globalThis.fetch;
+}
+
+export function createModelFactory(entry: ModelEntry, options: FactoryOptions = {}): ModelFactory {
   switch (entry.provider) {
     case "mock": {
       if (entry.modelId !== "oracle" && entry.modelId !== "null") {
@@ -36,7 +49,7 @@ export function createModelFactory(entry: ModelEntry): ModelFactory {
     }
     case "anthropic": {
       const apiKey = requireKey(entry.apiKeyEnv ?? "ANTHROPIC_API_KEY");
-      const provider = createAnthropic({ apiKey });
+      const provider = createAnthropic({ apiKey, ...(options.fetch ? { fetch: options.fetch } : {}) });
       const model = provider(entry.modelId);
       return { forItem: () => model, billable: true };
     }
@@ -47,6 +60,7 @@ export function createModelFactory(entry: ModelEntry): ModelFactory {
         name: entry.providerName ?? entry.name,
         baseURL: entry.baseURL,
         apiKey,
+        ...(options.fetch ? { fetch: options.fetch } : {}),
       });
       const model = provider(entry.modelId);
       return { forItem: () => model, billable: true };
