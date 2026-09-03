@@ -3,8 +3,8 @@
 The same invented company as v1, a year later. Nothing in here describes a real
 company, product, person or customer. It is written to look like the material a
 retrieval system actually has to read, and then made harder than v1 on purpose:
-v1 was answered at about 98% by the one real model that has run it, so v2 was
-built until a strong model has somewhere to fall.
+the real model that has run v1 answered 99% of its items, so v2 was built until a
+strong model has somewhere to fall.
 
 Once a corpus version is published it does not change. Editing a document, an
 item, the alias table, the retrieval parameters, the chunker or the embedding
@@ -37,9 +37,9 @@ same. A v2 case is broader than a v1 item and its fields sit in more documents.
 
 **Wrenfield** is remote-first and builds **Palisade**, a data residency gateway,
 and **Wrenfield Relay**, a regional proxy. The records run from January to the end
-of June 2027, around the v5 release: an SLO tightening, a pricing decision, six
-residency regions, ten outages, a SOC 2 renewal, seven vendor contracts, a public
-launch and one product rename.
+of June 2027, around the v5 release: ten metrics that keep moving, a residency
+region list that gains two entries and loses one, ten outages, a SOC 2 renewal,
+eight vendor contracts, a public launch and one product rename.
 
 22 named people write these documents. Two of them are called Ravi and work on
 different teams, which is why the alias table has no entry for the bare first
@@ -172,7 +172,7 @@ nothing else.
 12, `rrf_k` 60, `recency_weight` 0.1, `max_chunks_per_doc` 2. They are part of the
 corpus version, not of the harness.
 
-With those parameters the retrieval hit rate is **87.5%** of the 399 fields that
+With those parameters the retrieval hit rate is **88.2%** of the 399 fields that
 have gold documents, which is a property of the pipeline and the corpus and not
 of any model. It is deliberately not near 100%: template noise and near-duplicate
 distractors were added until it landed between 85% and 90%, so that a leaderboard
