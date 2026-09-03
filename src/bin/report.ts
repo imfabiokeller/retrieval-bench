@@ -41,7 +41,7 @@ writeFileSync(
 
 const readmePath = join(REPO_ROOT, "README.md");
 if (existsSync(readmePath)) {
-  writeFileSync(readmePath, injectLeaderboard(readFileSync(readmePath, "utf8"), block));
+  writeFileSync(readmePath, injectLeaderboard(readFileSync(readmePath, "utf8"), block, version));
 }
 
 for (const bundle of bundles) {

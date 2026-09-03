@@ -134,7 +134,10 @@ export interface FieldResult {
 
 export interface ItemResult {
   item_id: string;
+  /** The case-level axis. Per-field axes are on the field rows. */
   axis: Axis;
+  /** The case this single-field twin repeats one field of, or null. */
+  twin_of?: string | null;
   question: string;
   retrieved_chunk_ids: string[];
   retrieved_doc_ids: string[];

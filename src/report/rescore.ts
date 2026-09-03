@@ -43,6 +43,7 @@ export function rescoreItems(stored: ItemResult[], corpus: Map<string, Item>, al
     const gold = goldDocIdsOf(item);
     items.push({
       ...result,
+      twin_of: item.twin_of ?? null,
       parsed,
       expected: item.expected,
       fields: scored.fields,

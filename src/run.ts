@@ -122,6 +122,7 @@ export async function runItem(context: RunItemContext, item: Item): Promise<Item
   return {
     item_id: item.id,
     axis: item.axis,
+    twin_of: item.twin_of ?? null,
     question: item.question,
     retrieved_chunk_ids: retrieved.map((entry) => entry.chunk.id),
     retrieved_doc_ids: retrievedDocIds,

@@ -1,31 +1,36 @@
 import { strict as assert } from "node:assert";
 import { test } from "node:test";
 import {
-  LEADERBOARD_END,
-  LEADERBOARD_START,
   injectLeaderboard,
+  leaderboardMarkers,
   renderLeaderboard,
   retrievalHitRate,
   summarize,
+  twinGap,
 } from "../src/report/leaderboard.js";
 import { CSV_COLUMNS, toCsv } from "../src/report/rows.js";
 import type { RunBundle } from "../src/report/rows.js";
-import type { Axis, ItemResult, RunMeta } from "../src/types.js";
+import type { Axis, FieldResult, ItemResult, RunMeta } from "../src/types.js";
 
-function item(id: string, axis: Axis, correct: boolean, overrides: Partial<ItemResult> = {}): ItemResult {
+function field(name: string, axis: Axis, correct: boolean, hit: boolean | null = true): FieldResult {
+  return { field: name, axis, expected: 1, got: correct ? 1 : 2, correct, retrieval_hit: hit };
+}
+
+function item(id: string, axis: Axis, fields: FieldResult[], overrides: Partial<ItemResult> = {}): ItemResult {
   return {
     item_id: id,
     axis,
+    twin_of: null,
     question: `question ${id}`,
     retrieved_chunk_ids: ["d1#0"],
     retrieved_doc_ids: ["d1"],
-    retrieval_hit: axis === "abstain" ? null : true,
+    retrieval_hit: fields.some((entry) => entry.retrieval_hit === true),
     prompt: "EVIDENCE\n...",
     raw_output: '{"value": 1}',
     parsed: { value: 1 },
     expected: { value: 1 },
-    fields: [{ field: "value", axis, expected: 1, got: correct ? 1 : 2, correct, retrieval_hit: axis === "abstain" ? null : true }],
-    correct,
+    fields,
+    correct: fields.every((entry) => entry.correct),
     latency_ms: 100,
     ttft_ms: 40,
     tokens_in: 800,
@@ -66,33 +71,51 @@ const meta: RunMeta = {
   retries: 0,
 };
 
+// Four single-field items, the shape a v1 run has.
 const bundle: RunBundle = {
   meta,
   items: [
-    item("v1-ent-001", "entities", true),
-    item("v1-fac-001", "facts", true),
-    item("v1-sup-001", "supersession", false, { retrieval_hit: false }),
-    item("v1-abs-001", "abstain", true),
+    item("v1-ent-001", "entities", [field("value", "entities", true)]),
+    item("v1-fac-001", "facts", [field("value", "facts", true)]),
+    item("v1-sup-001", "supersession", [field("value", "supersession", false, false)], { retrieval_hit: false }),
+    item("v1-abs-001", "abstain", [field("value", "abstain", true, null)], { retrieval_hit: null }),
   ],
 };
 
-test("the CSV has one row per item plus a header, in the declared column order", () => {
+// One case whose three fields sit on three axes, plus a twin of its hardest one.
+const caseBundle: RunBundle = {
+  meta: { ...meta, corpus_version: "v2", item_count: 2 },
+  items: [
+    item("v2-case-001", "asof", [
+      field("p99_ms", "asof", false),
+      field("owner", "join", true),
+      field("credits_eur", "abstain", true, null),
+    ]),
+    item("v2-twin-001", "asof", [field("p99_ms", "asof", true)], { twin_of: "v2-case-001" }),
+  ],
+};
+
+test("the CSV has one row per field plus a header, in the declared column order", () => {
   const csv = toCsv([bundle]);
   const lines = csv.trim().split("\n");
   assert.equal(lines[0], CSV_COLUMNS.join(","));
-  assert.equal(lines.length, 5);
-  assert.ok(lines[1]?.startsWith("20260903-1200-fixture,fixture,mock,fixture,v1,abc123,def456,v1-ent-001,entities,true,true,"));
+  assert.equal(lines.length, 5, "four single-field items are four rows");
+  assert.ok(
+    lines[1]?.startsWith("20260903-1200-fixture,fixture,mock,fixture,v1,abc123,def456,v1-ent-001,entities,,0,value,entities,true,true,"),
+    lines[1],
+  );
+  assert.equal(toCsv([caseBundle]).trim().split("\n").length, 5, "a three-field case and a twin are four rows");
 });
 
-test("the CSV carries compact expected and got objects, not prompts or raw output", () => {
-  const csv = toCsv([bundle]);
-  assert.ok(csv.includes('"{""value"":1}"'));
-  assert.ok(!csv.includes("EVIDENCE"));
+test("a field row carries its own axis, hit flag, expected and got value", () => {
+  const rows = toCsv([caseBundle]).trim().split("\n");
+  assert.ok(rows[1]?.includes(",0,p99_ms,asof,false,true,1,2,"), rows[1]);
+  assert.ok(rows[2]?.includes(",1,owner,join,true,true,1,1,"), rows[2]);
+  assert.ok(rows[3]?.includes(",2,credits_eur,abstain,true,,1,1,"), "an abstain field has no hit flag");
 });
 
-test("an empty retrieval hit flag is written as an empty cell", () => {
-  const row = toCsv([bundle]).trim().split("\n")[4] ?? "";
-  assert.ok(row.includes(",abstain,,true,"), `abstain row was ${row}`);
+test("the CSV carries no prompts and no raw output", () => {
+  assert.ok(!toCsv([bundle]).includes("EVIDENCE"));
 });
 
 test("reasoning tokens are totalled per run and shown as their own column", () => {
@@ -102,48 +125,85 @@ test("reasoning tokens are totalled per run and shown as their own column", () =
   assert.ok(toCsv([bundle]).split("\n")[0]?.includes("tokens_out,tokens_reasoning,tokens_cached"));
 });
 
-test("summarize computes overall, per-axis and conditioned accuracy", () => {
+test("summarize counts fields, not items, and keeps the case number beside them", () => {
   const summary = summarize(bundle);
-  assert.equal(summary.n, 4);
+  assert.equal(summary.n, 4, "four scored fields");
+  assert.equal(summary.cases, 4);
   assert.equal(summary.accuracy, 0.75);
+  assert.equal(summary.caseAccuracy, 0.75);
   assert.equal(summary.perAxis.entities.accuracy, 1);
   assert.equal(summary.perAxis.supersession.accuracy, 0);
   assert.equal(summary.perAxis.supersession.n, 1);
   assert.equal(summary.accuracyGivenHit, 1, "the only miss is also the only retrieval miss");
-  assert.equal(summary.hitItems, 2);
+  assert.equal(summary.hitFields, 2);
 });
 
-test("the retrieval hit rate excludes items with no gold documents", () => {
+test("a case counts once as a case and once per field on its own axis", () => {
+  const summary = summarize(caseBundle);
+  assert.equal(summary.cases, 2);
+  assert.equal(summary.n, 4);
+  assert.equal(summary.caseAccuracy, 0.5, "the case has a wrong field, the twin does not");
+  assert.equal(summary.accuracy, 0.75);
+  assert.equal(summary.perAxis.asof.n, 2, "the case field and its twin");
+  assert.equal(summary.perAxis.asof.accuracy, 0.5);
+  assert.equal(summary.perAxis.join.n, 1);
+  assert.equal(summary.perAxis.abstain.n, 1);
+});
+
+test("the twin gap compares one field asked alone with the same field inside its case", () => {
+  const gap = twinGap(caseBundle.items);
+  assert.ok(gap);
+  assert.equal(gap.n, 1);
+  assert.equal(gap.twinAccuracy, 1);
+  assert.equal(gap.caseAccuracy, 0);
+  assert.equal(gap.gap, 1);
+  assert.equal(twinGap(bundle.items), null, "a run with no twins has no gap");
+  assert.ok(renderLeaderboard([caseBundle], "sco789").includes("Twin gap"));
+  assert.ok(!renderLeaderboard([bundle], "sco789").includes("Twin gap"));
+});
+
+test("the retrieval hit rate counts fields and breaks down per axis", () => {
   const rate = retrievalHitRate([bundle]);
-  assert.equal(rate.scored, 3);
+  assert.equal(rate.scored, 3, "the abstain field has no gold documents");
   assert.equal(rate.total, 4);
   assert.ok(Math.abs((rate.rate ?? 0) - 2 / 3) < 1e-12);
+  assert.equal(rate.perAxis.entities?.accuracy, 1);
+  assert.equal(rate.perAxis.supersession?.accuracy, 0);
+  assert.equal(rate.perAxis.abstain, undefined);
 });
 
 test("the leaderboard renders a markdown table naming the model and the hashes", () => {
   const block = renderLeaderboard([bundle], "sco789");
-  assert.ok(block.includes("| model | items | overall |"));
+  assert.ok(block.includes("| model | fields | overall |"));
   assert.ok(block.includes("| fixture | 4 | 75.0% |"), block);
   assert.ok(block.includes("100.0% (n=1)"), "per-axis cells carry their own n");
+  assert.ok(block.includes("| cases | case fully correct |"));
   assert.ok(block.includes("abc123"));
   assert.ok(block.includes("def456"));
   assert.ok(block.includes("Retrieval hit rate"));
+});
+
+test("an axis no run covered is left out of the table", () => {
+  const block = renderLeaderboard([bundle], "sco789");
+  assert.ok(!block.includes("| aggregation |"), "v1 covers five axes and shows five columns");
+  assert.ok(renderLeaderboard([caseBundle], "sco789").includes(" | join | "));
 });
 
 test("an empty leaderboard says so instead of rendering an empty table", () => {
   assert.ok(renderLeaderboard([], "sco789").includes("No runs yet"));
 });
 
-test("injection replaces only what is between the markers", () => {
-  const readme = `# Title\n\n${LEADERBOARD_START}\nold table\n${LEADERBOARD_END}\n\n## Next section\n`;
-  const updated = injectLeaderboard(readme, "new table");
-  assert.ok(updated.includes("new table"));
-  assert.ok(!updated.includes("old table"));
-  assert.ok(updated.startsWith("# Title"));
-  assert.ok(updated.includes("## Next section"));
-  assert.equal(injectLeaderboard(updated, "third table").split(LEADERBOARD_START).length, 2, "injection is idempotent");
+test("injection replaces only what is between that version's markers", () => {
+  const v1 = leaderboardMarkers("v1");
+  const v2 = leaderboardMarkers("v2");
+  const readme = `# Title\n\n${v1.start}\nold v1\n${v1.end}\n\n${v2.start}\nold v2\n${v2.end}\n`;
+  const updated = injectLeaderboard(readme, "new v1", "v1");
+  assert.ok(updated.includes("new v1"));
+  assert.ok(!updated.includes("old v1"));
+  assert.ok(updated.includes("old v2"), "the other version's table is untouched");
+  assert.equal(injectLeaderboard(updated, "third v1", "v1").split(v1.start).length, 2, "injection is idempotent");
 });
 
-test("injection refuses a README without the markers", () => {
-  assert.throws(() => injectLeaderboard("# Title\n", "table"), /marker comments/);
+test("injection refuses a README without that version's markers", () => {
+  assert.throws(() => injectLeaderboard("# Title\n", "table", "v2"), /LEADERBOARD:v2:START/);
 });

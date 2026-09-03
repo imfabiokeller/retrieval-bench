@@ -147,7 +147,7 @@ test("the leaderboard names the scorer hash and the runs whose score moved", () 
   const block = renderLeaderboard([bundle], "sco12345678");
   assert.ok(block.includes("sco12345678"), "the scorer hash belongs in the header");
   assert.ok(block.includes("re-scored at report time"), block);
-  assert.ok(block.includes("0.0% at run time, 100.0% now"), block);
+  assert.ok(block.includes("0.0% of cases at run time, 100.0% now"), block);
 });
 
 test("the leaderboard says nothing about drift when there is none", () => {
