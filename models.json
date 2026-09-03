@@ -1,0 +1,86 @@
+{
+  "_comment": [
+    "Every model the benchmark can run. Adding a model is one entry here and no code.",
+    "Prices are US dollars per million tokens and are copied from the provider's own",
+    "published pricing on the date in pricing_verified. Nothing here is estimated: a",
+    "price that could not be read from the provider is null, and the runner refuses to",
+    "run a model with a null input or output price unless it is given --allow-unpriced.",
+    "cached_input_per_mtok is null wherever the cached-read rate was not verified; the",
+    "cost estimate then bills cached tokens at the full input rate, which is an upper bound.",
+    "params: the run uses temperature 0 and max_tokens 512 for every model. A model entry",
+    "may override that only when the provider rejects the fixed value, and the override is",
+    "recorded in run.json and shown in the leaderboard notes."
+  ],
+  "models": [
+    {
+      "name": "claude-opus-5",
+      "provider": "anthropic",
+      "modelId": "claude-opus-5",
+      "apiKeyEnv": "ANTHROPIC_API_KEY",
+      "providerOptions": { "anthropic": { "thinking": { "type": "disabled" } } },
+      "omitTemperature": true,
+      "pricing": { "input_per_mtok": 5.0, "output_per_mtok": 25.0, "cached_input_per_mtok": null },
+      "pricing_verified": "2026-09-03",
+      "notes": "Sampling parameters are rejected by this model, so temperature is omitted. Thinking is on by default and is turned off so the 512 token output budget is spent on the answer."
+    },
+    {
+      "name": "claude-sonnet-5",
+      "provider": "anthropic",
+      "modelId": "claude-sonnet-5",
+      "apiKeyEnv": "ANTHROPIC_API_KEY",
+      "providerOptions": { "anthropic": { "thinking": { "type": "disabled" } } },
+      "omitTemperature": true,
+      "pricing": { "input_per_mtok": 2.0, "output_per_mtok": 10.0, "cached_input_per_mtok": null },
+      "pricing_verified": "2026-09-03",
+      "notes": "Sampling parameters are rejected by this model, so temperature is omitted."
+    },
+    {
+      "name": "claude-haiku-4-5",
+      "provider": "anthropic",
+      "modelId": "claude-haiku-4-5",
+      "apiKeyEnv": "ANTHROPIC_API_KEY",
+      "pricing": { "input_per_mtok": 1.0, "output_per_mtok": 5.0, "cached_input_per_mtok": null },
+      "pricing_verified": "2026-09-03",
+      "notes": "Accepts temperature, so it runs on the fixed parameters with no override."
+    },
+    {
+      "name": "deepseek-v4-flash",
+      "provider": "openai-compatible",
+      "providerName": "deepseek",
+      "modelId": "deepseek-v4-flash",
+      "baseURL": "https://api.deepseek.com/v1",
+      "apiKeyEnv": "DEEPSEEK_API_KEY",
+      "pricing": { "input_per_mtok": 0.44, "output_per_mtok": 1.32, "cached_input_per_mtok": 0.014 },
+      "pricing_verified": "2026-09-03",
+      "notes": "DeepSeek prices differ between peak and off-peak hours. The peak rate is recorded here so every estimate is an upper bound; off-peak is half. Thinking mode is on by default for this model."
+    },
+    {
+      "name": "qwen-plus",
+      "provider": "openai-compatible",
+      "providerName": "dashscope",
+      "modelId": "qwen-plus",
+      "baseURL": "https://dashscope-us.aliyuncs.com/compatible-mode/v1",
+      "apiKeyEnv": "ALIBABA_API_KEY",
+      "providerOptions": { "dashscope": { "enable_thinking": false } },
+      "pricing": { "input_per_mtok": null, "output_per_mtok": null, "cached_input_per_mtok": null },
+      "pricing_verified": null,
+      "notes": "Alibaba Model Studio does not publish qwen-plus token prices on a page that could be read when this file was written, so the prices are null and this model needs --allow-unpriced. enable_thinking is false because qwen thinks by default."
+    },
+    {
+      "name": "oracle",
+      "provider": "mock",
+      "modelId": "oracle",
+      "pricing": { "input_per_mtok": 0, "output_per_mtok": 0, "cached_input_per_mtok": 0 },
+      "pricing_verified": "2026-09-03",
+      "notes": "Offline. Returns the gold object for every item, so a correct harness scores 100%."
+    },
+    {
+      "name": "null",
+      "provider": "mock",
+      "modelId": "null",
+      "pricing": { "input_per_mtok": 0, "output_per_mtok": 0, "cached_input_per_mtok": 0 },
+      "pricing_verified": "2026-09-03",
+      "notes": "Offline. Returns null for every field, which is the abstain baseline: 100% on the abstain axis and 0% everywhere else."
+    }
+  ]
+}
