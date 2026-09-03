@@ -1,7 +1,0 @@
-{
-  "_comment": "Retrieval parameters for corpus v1. These are the values every v1 run was made with; the file records them next to the corpus instead of leaving them in a shared constant.",
-  "top_n": 8,
-  "rrf_k": 60,
-  "recency_weight": 0.1,
-  "max_chunks_per_doc": 2
-}
