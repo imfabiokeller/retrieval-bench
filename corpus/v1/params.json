@@ -1,0 +1,7 @@
+{
+  "_comment": "Retrieval parameters for corpus v1. top_n is the number of chunks the window holds, and it is the one lever that trades the guarantee against the cost cap: the corpus is written until every gold source of every question is inside the window at this number. rrf_k, recency_weight and max_chunks_per_doc are the pipeline defaults and were not tuned. See README.md, section 'The pipeline and its parameters'.",
+  "top_n": 16,
+  "rrf_k": 60,
+  "recency_weight": 0.1,
+  "max_chunks_per_doc": 2
+}
