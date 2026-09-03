@@ -23,12 +23,12 @@ import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import type { LanguageModel } from "ai";
 import { requireKey } from "../env.js";
 import type { ModelEntry } from "../models.js";
-import type { Item } from "../types.js";
+import type { Question } from "../types.js";
 import { createMockModel } from "./mock.js";
 
 export interface ModelFactory {
-  /** A model for one item. The real providers ignore the item; the mocks answer from it. */
-  forItem(item: Item): LanguageModel;
+  /** A model for one question. The real providers ignore it; the mocks answer from its gold pack. */
+  forItem(question: Question): LanguageModel;
   /** True when running this model spends money. */
   billable: boolean;
 }
@@ -45,7 +45,7 @@ export function createModelFactory(entry: ModelEntry, options: FactoryOptions = 
         throw new Error(`unknown mock model "${entry.modelId}"`);
       }
       const kind = entry.modelId;
-      return { forItem: (item) => createMockModel(kind, item), billable: false };
+      return { forItem: (question) => createMockModel(kind, question), billable: false };
     }
     case "anthropic": {
       const apiKey = requireKey(entry.apiKeyEnv ?? "ANTHROPIC_API_KEY");

@@ -2,35 +2,33 @@
 // the runner has exactly one code path: the same streamText call, the same
 // parser, the same scorer, the same results files.
 //
-//   oracle  emits the gold object. A correct harness scores 100% on every axis.
-//   null    emits null for every field. That is the abstain baseline: 100% on
-//           the abstain axis and 0% everywhere else.
-//
-// A `stale` mock, which would answer supersession items with the superseded
-// value, is deliberately absent: corpus v1 does not record a machine-readable
-// superseded value per item, so a stale mock could only be produced by guessing,
-// and a guessing baseline is not a baseline.
+//   oracle  emits the gold pack. A correct harness scores 100% on every channel
+//           and every family.
+//   null    emits the abstain pack: not_in_evidence, a null value, no history
+//           and no sources. That is the abstain baseline, and it is 100% on the
+//           abstain family and 0% everywhere else.
 
 import { simulateReadableStream } from "ai";
 import { MockLanguageModelV4 } from "ai/test";
 import type { LanguageModel } from "ai";
 import type { LanguageModelV4StreamPart } from "@ai-sdk/provider";
-import type { FieldValue, Item } from "../types.js";
+import type { Pack, Question } from "../types.js";
 
 export type MockKind = "oracle" | "null";
 
-export function mockAnswer(kind: MockKind, item: Item): Record<string, FieldValue> {
-  if (kind === "oracle") return item.expected;
-  const answer: Record<string, FieldValue> = {};
-  for (const field of item.schema.required) answer[field] = null;
-  return answer;
+export function mockAnswer(kind: MockKind, question: Question): Pack {
+  if (kind === "oracle") {
+    const { status, value, history, sources } = question.gold;
+    return { status, value, history, sources };
+  }
+  return { status: "not_in_evidence", value: null, history: [], sources: [] };
 }
 
-export function createMockModel(kind: MockKind, item: Item): LanguageModel {
-  const text = JSON.stringify(mockAnswer(kind, item));
+export function createMockModel(kind: MockKind, question: Question): LanguageModel {
+  const text = JSON.stringify(mockAnswer(kind, question));
   const chunks: LanguageModelV4StreamPart[] = [
     { type: "stream-start", warnings: [] },
-    { type: "response-metadata", id: `mock-${item.id}`, modelId: kind, timestamp: new Date(0) },
+    { type: "response-metadata", id: `mock-${question.id}`, modelId: kind, timestamp: new Date(0) },
     { type: "text-start", id: "0" },
     { type: "text-delta", id: "0", delta: text },
     { type: "text-end", id: "0" },

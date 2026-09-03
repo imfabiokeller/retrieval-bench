@@ -4,10 +4,11 @@
 //   vector  cosine over the committed gemini-embedding-001 vectors of that same text
 //
 // The two lists are fused with Reciprocal Rank Fusion at k = 60, given a soft
-// recency boost, capped at 2 chunks per document, and cut to the top 8. That is
-// the entire retrieval stage. There is no LLM rerank: selection among the 8 is
-// folded into the single extraction call, so the model under test stays the
-// only variable in the benchmark.
+// recency boost, capped at 2 chunks per document, and cut to the top_n the
+// corpus params.json declares. That is the entire retrieval stage. There is no
+// LLM rerank, no neighbour expansion and no reference expansion: selection
+// inside the window is folded into the single call, so the model under test
+// stays the only variable in the benchmark.
 
 import { buildBm25Index, bm25Rank } from "./bm25.js";
 import type { Bm25Index } from "./bm25.js";
@@ -89,11 +90,4 @@ export class Retriever {
     }
     return results;
   }
-}
-
-/** True when at least one retrieved chunk comes from a gold document. Null when the item has no gold documents. */
-export function retrievalHit(retrieved: Retrieved[], goldDocIds: string[]): boolean | null {
-  if (goldDocIds.length === 0) return null;
-  const gold = new Set(goldDocIds);
-  return retrieved.some((entry) => gold.has(entry.chunk.doc_id));
 }

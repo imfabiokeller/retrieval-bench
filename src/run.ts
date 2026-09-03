@@ -1,4 +1,5 @@
-// The runner. One item, one retrieval, one model call, one deterministic score.
+// The runner. One question, one retrieval, one model call, one deterministic
+// score over four channels.
 //
 // The only thing that changes between two runs is the model. The corpus, the
 // index, the retrieval parameters, the prompt and the scorer are all fixed and
@@ -8,14 +9,13 @@
 import { streamText } from "ai";
 import type { LanguageModel } from "ai";
 import { costUsd } from "./cost.js";
-import { goldDocIdsOf } from "./fields.js";
 import type { ModelEntry } from "./models.js";
 import type { Aliases } from "./normalize.js";
-import { parseObject } from "./parse.js";
+import { parsePack } from "./parse.js";
 import { PROMPT_HASH, SYSTEM_PROMPT, renderPrompt } from "./prompt.js";
-import { Retriever, retrievalHit } from "./retrieve.js";
-import { scoreItem } from "./score.js";
-import type { Item, ItemResult, RetrievalParams, Retrieved, RunParams } from "./types.js";
+import { Retriever } from "./retrieve.js";
+import { scorePack } from "./score.js";
+import type { ItemResult, Question, RetrievalParams, Retrieved, RunParams } from "./types.js";
 
 export const DEFAULT_TEMPERATURE = 0;
 export const DEFAULT_MAX_OUTPUT_TOKENS = 512;
@@ -89,50 +89,62 @@ export interface RunItemContext {
   aliases: Aliases;
   entry: ModelEntry;
   params: RunParams;
-  modelFor: (item: Item) => LanguageModel;
+  modelFor: (question: Question) => LanguageModel;
 }
 
-export function retrieveFor(context: RunItemContext, item: Item, params: RetrievalParams): Retrieved[] {
-  return context.retriever.retrieve(item.question, context.queryVectors.get(item.id), params);
+export function retrieveFor(context: RunItemContext, question: Question, params: RetrievalParams): Retrieved[] {
+  return context.retriever.retrieve(question.question, context.queryVectors.get(question.id), params);
 }
 
-export async function runItem(context: RunItemContext, item: Item): Promise<ItemResult> {
-  const retrieved = retrieveFor(context, item, context.params);
-  const prompt = renderPrompt(item, retrieved);
-  const model = context.modelFor(item);
+/**
+ * Whether every gold source of this question had a chunk in the window. Null
+ * when the question has no gold sources, which is every abstain question. The
+ * corpus is written until this is true everywhere, so on a published run it is
+ * a gate that already passed rather than a number to read.
+ */
+export function guaranteeMet(retrievedDocIds: string[], goldSources: string[]): boolean | null {
+  if (goldSources.length === 0) return null;
+  const retrieved = new Set(retrievedDocIds);
+  return goldSources.every((id) => retrieved.has(id));
+}
+
+export async function runItem(context: RunItemContext, question: Question): Promise<ItemResult> {
+  const retrieved = retrieveFor(context, question, context.params);
+  const prompt = renderPrompt(question, retrieved);
+  const model = context.modelFor(question);
 
   const started = Date.now();
   let outcome = await callModel(model, prompt, context.entry, context.params);
-  let parsed = outcome.error === null ? parseObject(outcome.text) : null;
+  let parsed = outcome.error === null ? parsePack(outcome.text) : null;
   let retries = 0;
   if (parsed === null) {
     // One retry, and only one. An unparseable answer twice is an incorrect answer.
     retries = 1;
     outcome = await callModel(model, prompt, context.entry, context.params);
-    parsed = outcome.error === null ? parseObject(outcome.text) : null;
+    parsed = outcome.error === null ? parsePack(outcome.text) : null;
   }
   const latencyMs = Date.now() - started;
 
   const retrievedDocIds = [...new Set(retrieved.map((entry) => entry.chunk.doc_id))];
-  const scored = scoreItem(item, parsed, context.aliases, retrievedDocIds);
+  const scored = scorePack(parsed, question.gold, question.answer_type, context.aliases);
   const tokensIn = outcome.tokensIn ?? 0;
   const tokensOut = outcome.tokensOut ?? 0;
   const tokensCached = outcome.tokensCached ?? 0;
 
   return {
-    item_id: item.id,
-    axis: item.axis,
-    twin_of: item.twin_of ?? null,
-    question: item.question,
+    item_id: question.id,
+    family: question.family,
+    traps: question.traps,
+    question: question.question,
+    answer_type: question.answer_type,
     retrieved_chunk_ids: retrieved.map((entry) => entry.chunk.id),
     retrieved_doc_ids: retrievedDocIds,
-    retrieval_hit: retrievalHit(retrieved, goldDocIdsOf(item)),
+    guarantee_met: guaranteeMet(retrievedDocIds, question.gold.sources),
     prompt,
     raw_output: outcome.text,
     parsed,
-    expected: item.expected,
-    fields: scored.fields,
-    correct: scored.correct,
+    gold: question.gold,
+    scored,
     latency_ms: latencyMs,
     ttft_ms: outcome.ttftMs,
     tokens_in: outcome.tokensIn,
