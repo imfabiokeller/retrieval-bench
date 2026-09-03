@@ -33,10 +33,10 @@ That is the gold pack for a real question in this corpus:
 > What is the p99 latency budget for the Palisade gateway now, in ms?
 
 The budget was set at 190 in January, cut to 165 in March and cut again to 150
-in May. Three later messages repeat an older figure without changing anything, a
-mail quotes 165 under the new number, someone floats 120 for next quarter, and a
-message in June asks whether we are still at 165 rather than saying so. The
-answer is 150 and the chain is all three values with the dates they took effect.
+in May. Two later messages repeat 190 without changing anything, a mail quotes
+165 under the new number, someone floats 120 for next quarter, and a message in
+June asks whether we are still at 165 rather than saying so. The answer is 150,
+and the chain is all three values with the dates they took effect.
 
 The sources are every document that asserts one of those values in its own
 voice, which on this question is exactly the three that made the changes: the
@@ -88,8 +88,8 @@ thirty questions; the counts are in [corpus/v1/README.md](corpus/v1/README.md).
 | `abstain` | nothing; the corpus does not support a value | What is the p50 latency budget for the Palisade gateway, in ms? |
 
 Most abstains are hard: the sibling of the asked-for thing is in the window and
-stated plainly. The p99 latency budget is written down in eight documents; the p50
-budget never is, and one message says as much without giving a number.
+stated plainly. The p99 latency budget is written down in eight documents; the
+p50 budget never is, and one message says as much without giving a number.
 
 ## The fifteen traps
 
@@ -142,9 +142,9 @@ Wrenfield is an invented company with two products, eighteen people and eight
 customers, written across the first half of 2027. There are 691 documents and
 119,676 characters: 520 Slack messages across twelve channels, 63 reference
 documents, 44 meeting notes, 40 emails, and thirteen issues with their comments.
-Most of it is short, the way an archive is. Ten documents are deliberately long
-enough to chunk into three or four pieces, and that is where the `chunk_split`
-questions live. Weekly standups and monthly digests repeat the same template
+Most of it is short, the way an archive is. Thirteen documents are deliberately
+long enough to chunk into three or four pieces, and that is where the
+`chunk_split` questions live. Weekly standups and monthly digests repeat the same template
 with different numbers, and none of them answers anything: 254 of the 691
 documents are a gold source for nothing at all.
 
@@ -223,11 +223,13 @@ output tokens, over 307 questions with a 16 chunk window:
 - total projected: **$4.80**
 
 The output budget is billed in full whatever the model actually writes, so it is
-where the cap was being wasted. A pack is a small JSON object: on the run below
-the longest reply was 204 output tokens and the 95th percentile was 140, against
-a budget of 512. Cutting the budget to 320 leaves the longest reply half again
-as much room as it needed and buys 71 more questions, which is what took every
-family to the thirty the design asks for.
+where the cap was being wasted. A pack is a small JSON object: across the 307
+replies below the longest is 204 output tokens and the 95th percentile is 140,
+and the run that was made against a 512 token budget measured the same shape.
+More than half of that projection was buying room no reply used. Cutting the
+budget to 320 still leaves the longest reply half again as much room as it
+needed, and it bought 71 more questions, which is what took every family to the
+thirty the design asks for.
 
 Actual cost is computed from the token counts the provider reports rather than
 from the estimate. The `deepseek-v4-flash` run below projected $0.34 and cost

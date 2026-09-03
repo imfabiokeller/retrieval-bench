@@ -41,11 +41,12 @@ The twelve channels are `eng-core`, `eng-palisade`, `eng-relay`, `infra`,
 and `release`.
 
 The average document is 173 characters, because most of them are Slack
-messages. Ten are deliberately long, between 1,202 and 1,663 characters, and
-chunk into three or four pieces: a handbook, a data processing agreement, two
-runbooks, an architecture note, an onboarding guide, a glossary, a postmortem, a
-support FAQ and a release process. Those are where the `chunk_split` questions
-live.
+messages. Thirteen are deliberately long, between 1,070 and 1,663 characters,
+and chunk into three or four pieces: a handbook, a data processing agreement,
+two runbooks, a support handbook section, a release process, a backfill guide,
+an architecture note, an onboarding guide, a glossary, a postmortem, a support
+FAQ and a product note. Those are where the `chunk_split` questions live. Every
+Slack message is exactly one chunk.
 
 ## The questions
 
@@ -119,8 +120,8 @@ however close they read.
   questions turn on that hour.
 - Nineteen messages and mails are written in German, in the DACH channel, in
   support, in general and in eng-core, and two more are English replies that
-  quote a German line. Twelve of them are a gold source for a question asked in
-  English.
+  quote a German line. Twelve of the nineteen are a gold source for a question
+  asked in English.
 - Values appear in 11 plain text tables, in 3 numbered lists, in 3 pasted JSON
   blocks, and in 2 messages with a typo left in.
 - The 34 weekly standups and the 6 monthly digests are template noise: the same
