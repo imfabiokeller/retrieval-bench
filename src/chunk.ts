@@ -1,8 +1,10 @@
 // Ingest. Every doc becomes one or more chunks and every chunk gets a
-// contextual prefix (type, channel or project, author, date, title). The prefix
-// is part of the text that BM25 indexes AND part of the text that is embedded,
-// which is what lets a query like "who announced the GA date in eng-palisade"
-// match on metadata the message body never repeats.
+// contextual prefix (document id, type, channel or project, author, date,
+// title). The prefix is part of the text that BM25 indexes AND part of the text
+// that is embedded, which is what lets a query like "who announced the GA date
+// in eng-palisade" match on metadata the message body never repeats. The
+// document id leads the prefix because it is what the model cites: the sources
+// channel is only answerable when the id is on the extract the answer came from.
 //
 // A Slack message is always exactly one chunk. Longer docs are packed into
 // chunks of at most CHUNK_TARGET_CHARS on sentence boundaries.
@@ -40,7 +42,7 @@ export function contextPrefix(doc: Doc): string {
     default:
       head = "document";
   }
-  const parts = [head, `by ${doc.author}`, `on ${isoDate(doc.created_at)}`];
+  const parts = [`id=${doc.id}`, head, `by ${doc.author}`, `on ${isoDate(doc.created_at)}`];
   if (doc.title) parts.push(`titled ${doc.title}`);
   return `[${parts.join(" | ")}]`;
 }

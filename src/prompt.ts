@@ -2,25 +2,32 @@
 // provider, and its sha256 is recorded on every run as prompt_hash. Changing a
 // character here changes the prompt hash and makes older runs incomparable.
 //
-// The reply parser used to live here. It is in parse.ts now, because it is part
-// of the scorer rather than part of the prompt: the report re-parses every
-// stored reply with it, and it is fingerprinted as scorer_hash, not prompt_hash.
+// It is deliberately neutral. It says what the evidence looks like, what the
+// reply looks like, and what each key means. It says nothing about how to weigh
+// evidence: no "prefer the newest", no "a quoted line is not a statement", no
+// "not_in_evidence is usually right". Every hint of that kind would be the
+// benchmark answering its own questions.
 
 import { sha256 } from "./hash.js";
-import type { Item, Retrieved } from "./types.js";
+import type { Question, Retrieved } from "./types.js";
 
 export const SYSTEM_PROMPT = [
-  "You extract structured data from a company's internal records.",
+  "You answer one question about a company's internal records.",
   "",
-  "You are given EVIDENCE (Slack messages, issue tracker entries, emails, meeting notes and documents, each labelled with its type, channel or project, author and date), a QUESTION, and a SCHEMA.",
+  "You are given EVIDENCE: numbered extracts from Slack messages, issue tracker entries, emails, meeting notes and documents. Every extract starts with a header in square brackets that carries the document id, the document type, the channel or project it belongs to, the author, the date, and the title where the document has one. The document id is what you cite.",
   "",
-  "Rules:",
-  "1. Reply with a single JSON object and nothing else. No prose, no explanation, no markdown, no code fences.",
-  "2. The object has exactly the fields named in the schema. Do not add fields and do not omit fields.",
-  "3. Use only the evidence. Do not use outside knowledge and do not guess.",
-  "4. If the evidence does not support a value for a field, set that field to null. null is the right answer more often than a plausible-looking value.",
-  "5. When two pieces of evidence disagree, prefer the one with the newer date. A later correction replaces an earlier statement, and an older value repeated after a correction is still the older value.",
-  "6. Field types: \"string\" is a plain string; \"number\" is a bare number with no units, no currency symbol and no thousands separators; \"date\" is YYYY-MM-DD; \"time\" is HH:MM on a 24 hour clock with no timezone; \"boolean\" is true or false; \"string[]\" is an array of strings.",
+  "Reply with a single JSON object and nothing else. No prose, no explanation, no markdown, no code fences. The object has exactly these four keys:",
+  "",
+  '{"status": "answered", "value": 165, "history": [{"value": 190, "from": "2027-01-12"}, {"value": 165, "from": "2027-03-24"}], "sources": ["slack-eng-core-003", "mtg-007"]}',
+  "",
+  '- "status" is "answered" or "not_in_evidence". It is "not_in_evidence" when the evidence does not support a value for the question.',
+  '- "value" is the answer, in the ANSWER TYPE the question declares. It is null when the status is "not_in_evidence".',
+  '- "history" is a list of {"value", "from"} entries. When the question is about something that changed over time, list every distinct value it has held, each with the date that value took effect, oldest first. When it never changed, or the question is not about a value that changes, use an empty list.',
+  '- "sources" is a list of document ids, copied exactly from the evidence headers.',
+  "",
+  'Answer types: "string" is a plain string; "number" is a bare number with no units, no currency symbol and no thousands separators; "date" is YYYY-MM-DD; "time" is HH:MM on a 24 hour clock; "boolean" is true or false; "string[]" is an array of strings. A "from" date is always YYYY-MM-DD.',
+  "",
+  "Use only the evidence you are given.",
 ].join("\n");
 
 export const PROMPT_HASH = sha256(SYSTEM_PROMPT).slice(0, 16);
@@ -32,16 +39,16 @@ export function renderEvidence(retrieved: Retrieved[]): string {
     .join("\n\n");
 }
 
-export function renderPrompt(item: Item, retrieved: Retrieved[]): string {
+export function renderPrompt(question: Question, retrieved: Retrieved[]): string {
   return [
     "EVIDENCE",
     renderEvidence(retrieved),
     "",
     "QUESTION",
-    item.question,
+    question.question,
     "",
-    "SCHEMA",
-    JSON.stringify(item.schema),
+    "ANSWER TYPE",
+    question.answer_type,
     "",
     "Reply with the JSON object only.",
   ].join("\n");
