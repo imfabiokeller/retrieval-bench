@@ -14,7 +14,7 @@ function meta(overrides: Partial<RunMeta> = {}): RunMeta {
   return {
     run_id: "20270101-000000-test",
     model_name: "test-model",
-    provider: "mock",
+    provider: "openai-compatible",
     model_id: "test",
     params,
     corpus_version: "v1",
@@ -174,4 +174,18 @@ test("the leaderboard is injected between the markers and nowhere else", () => {
 
 test("an empty set of runs says so rather than rendering an empty table", () => {
   assert.match(renderLeaderboard([], "scorer"), /No runs yet/);
+});
+
+test("the offline mocks are listed as harness checks and kept out of the ranking", () => {
+  const block = renderLeaderboard(
+    [
+      bundle({ run_id: "r1", model_name: "oracle", provider: "mock" }, [item("a", "lookup", [], true), item("b", "abstain", [], true)]),
+      bundle({ run_id: "r2" }, [item("a", "lookup", [], false), item("b", "abstain", [], true)]),
+    ],
+    "scorer",
+  );
+  assert.ok(block.includes("| test-model | 1 |"), "the real model is ranked");
+  assert.ok(!block.includes("| oracle |"), "the mock has no row in the ranking");
+  assert.ok(block.includes("Harness checks"), "the mocks are listed under harness checks");
+  assert.ok(/`oracle`: score 100\.0%/.test(block), "the mock result is stated on its line");
 });

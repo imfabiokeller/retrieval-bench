@@ -203,8 +203,29 @@ function sumOf(row: ModelRow, pick: (summary: RunSummary) => number): number {
   return row.runs.reduce((total, run) => total + pick(run), 0);
 }
 
+function harnessChecks(mocks: ModelRow[]): string[] {
+  if (mocks.length === 0) return [];
+  const lines = mocks
+    .sort((a, b) => a.model.localeCompare(b.model))
+    .map((row) => {
+      const run = row.runs[0];
+      if (!run) return `- \`${row.model}\`: no run`;
+      const abstain = run.perFamily.abstain;
+      return (
+        `- \`${row.model}\`: score ${pct(run.packsFullyCorrect)}, macro value accuracy ${pct(run.macroValue)}` +
+        (abstain.n ? `, abstain family ${pct(abstain.accuracy)}` : "")
+      );
+    });
+  return [
+    "**Harness checks.** The offline mocks are not models and are kept out of the ranking. The oracle returns the gold pack and has to score 100 percent everywhere; the null model answers not_in_evidence to everything and has to score 100 percent on the abstain family and zero elsewhere. If either does not, the scorer is broken.",
+    "",
+    ...lines,
+  ];
+}
+
 function renderGroup(rows: ModelRow[], label: string, hash: string, headed: boolean): string[] {
-  const ordered = [...rows].sort(
+  const mocks = rows.filter((row) => row.provider === "mock");
+  const ordered = rows.filter((row) => row.provider !== "mock").sort(
     (a, b) =>
       mean(b.runs.map((run) => run.packsFullyCorrect)) - mean(a.runs.map((run) => run.packsFullyCorrect)) ||
       a.model.localeCompare(b.model),
@@ -272,6 +293,8 @@ function renderGroup(rows: ModelRow[], label: string, hash: string, headed: bool
     "**Trap resistance.** The share of the questions carrying that trap whose value channel was correct.",
     "",
     ...trapTable,
+    "",
+    ...harnessChecks(mocks),
     "",
     "**Cost and speed.** Tokens and cost are summed over the runs of the row; latency is averaged over them.",
     "",

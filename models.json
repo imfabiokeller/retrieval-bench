@@ -17,9 +17,19 @@
       "provider": "anthropic",
       "modelId": "claude-opus-5",
       "apiKeyEnv": "ANTHROPIC_API_KEY",
-      "providerOptions": { "anthropic": { "thinking": { "type": "disabled" } } },
+      "providerOptions": {
+        "anthropic": {
+          "thinking": {
+            "type": "disabled"
+          }
+        }
+      },
       "omitTemperature": true,
-      "pricing": { "input_per_mtok": 5.0, "output_per_mtok": 25.0, "cached_input_per_mtok": null },
+      "pricing": {
+        "input_per_mtok": 5.0,
+        "output_per_mtok": 25.0,
+        "cached_input_per_mtok": null
+      },
       "pricing_verified": "2026-09-03",
       "notes": "Sampling parameters are rejected by this model, so temperature is omitted. Thinking is on by default and is turned off so the 320 token output budget is spent on the answer."
     },
@@ -28,9 +38,19 @@
       "provider": "anthropic",
       "modelId": "claude-sonnet-5",
       "apiKeyEnv": "ANTHROPIC_API_KEY",
-      "providerOptions": { "anthropic": { "thinking": { "type": "disabled" } } },
+      "providerOptions": {
+        "anthropic": {
+          "thinking": {
+            "type": "disabled"
+          }
+        }
+      },
       "omitTemperature": true,
-      "pricing": { "input_per_mtok": 2.0, "output_per_mtok": 10.0, "cached_input_per_mtok": null },
+      "pricing": {
+        "input_per_mtok": 2.0,
+        "output_per_mtok": 10.0,
+        "cached_input_per_mtok": null
+      },
       "pricing_verified": "2026-09-03",
       "notes": "Sampling parameters are rejected by this model, so temperature is omitted."
     },
@@ -39,7 +59,11 @@
       "provider": "anthropic",
       "modelId": "claude-haiku-4-5",
       "apiKeyEnv": "ANTHROPIC_API_KEY",
-      "pricing": { "input_per_mtok": 1.0, "output_per_mtok": 5.0, "cached_input_per_mtok": null },
+      "pricing": {
+        "input_per_mtok": 1.0,
+        "output_per_mtok": 5.0,
+        "cached_input_per_mtok": null
+      },
       "pricing_verified": "2026-09-03",
       "notes": "Accepts temperature, so it runs on the fixed parameters with no override."
     },
@@ -50,8 +74,18 @@
       "modelId": "deepseek-v4-flash",
       "baseURL": "https://api.deepseek.com/v1",
       "apiKeyEnv": "DEEPSEEK_API_KEY",
-      "providerOptions": { "deepseek": { "thinking": { "type": "disabled" } } },
-      "pricing": { "input_per_mtok": 0.44, "output_per_mtok": 1.32, "cached_input_per_mtok": 0.014 },
+      "providerOptions": {
+        "deepseek": {
+          "thinking": {
+            "type": "disabled"
+          }
+        }
+      },
+      "pricing": {
+        "input_per_mtok": 0.44,
+        "output_per_mtok": 1.32,
+        "cached_input_per_mtok": 0.014
+      },
       "pricing_verified": "2026-09-03",
       "notes": "DeepSeek prices differ between peak and off-peak hours. The peak rate is recorded here so every estimate is an upper bound; off-peak is half. Thinking is on by default, and api-docs.deepseek.com documents thinking as a request body object on POST /chat/completions with type enabled or disabled, so it is set to disabled here: with it enabled the model spent the whole output budget on reasoning and returned no text."
     },
@@ -62,8 +96,16 @@
       "modelId": "qwen-plus",
       "baseURL": "https://dashscope-us.aliyuncs.com/compatible-mode/v1",
       "apiKeyEnv": "ALIBABA_API_KEY",
-      "providerOptions": { "dashscope": { "enable_thinking": false } },
-      "pricing": { "input_per_mtok": null, "output_per_mtok": null, "cached_input_per_mtok": null },
+      "providerOptions": {
+        "dashscope": {
+          "enable_thinking": false
+        }
+      },
+      "pricing": {
+        "input_per_mtok": null,
+        "output_per_mtok": null,
+        "cached_input_per_mtok": null
+      },
       "pricing_verified": null,
       "notes": "Alibaba Model Studio does not publish qwen-plus token prices on a page that could be read when this file was written, so the prices are null and this model needs --allow-unpriced. enable_thinking is false because qwen thinks by default."
     },
@@ -71,7 +113,11 @@
       "name": "oracle",
       "provider": "mock",
       "modelId": "oracle",
-      "pricing": { "input_per_mtok": 0, "output_per_mtok": 0, "cached_input_per_mtok": 0 },
+      "pricing": {
+        "input_per_mtok": 0,
+        "output_per_mtok": 0,
+        "cached_input_per_mtok": 0
+      },
       "pricing_verified": "2026-09-03",
       "notes": "Offline. Returns the gold object for every item, so a correct harness scores 100%."
     },
@@ -79,9 +125,53 @@
       "name": "null",
       "provider": "mock",
       "modelId": "null",
-      "pricing": { "input_per_mtok": 0, "output_per_mtok": 0, "cached_input_per_mtok": 0 },
+      "pricing": {
+        "input_per_mtok": 0,
+        "output_per_mtok": 0,
+        "cached_input_per_mtok": 0
+      },
       "pricing_verified": "2026-09-03",
       "notes": "Offline. Returns null for every field, which is the abstain baseline: 100% on the abstain axis and 0% everywhere else."
+    },
+    {
+      "name": "qwen-turbo",
+      "provider": "openai-compatible",
+      "providerName": "dashscope",
+      "modelId": "qwen-turbo",
+      "baseURL": "https://dashscope-us.aliyuncs.com/compatible-mode/v1",
+      "apiKeyEnv": "ALIBABA_API_KEY",
+      "providerOptions": {
+        "dashscope": {
+          "enable_thinking": false
+        }
+      },
+      "pricing": {
+        "input_per_mtok": null,
+        "output_per_mtok": null,
+        "cached_input_per_mtok": null
+      },
+      "pricing_verified": null,
+      "notes": "DashScope US endpoint, qwen-turbo, enable_thinking false. Run as a floor row. Alibaba Model Studio does not publish a token price on a page that could be read, so the prices are null and the model needs --allow-unpriced."
+    },
+    {
+      "name": "qwen-flash",
+      "provider": "openai-compatible",
+      "providerName": "dashscope",
+      "modelId": "qwen-flash",
+      "baseURL": "https://dashscope-us.aliyuncs.com/compatible-mode/v1",
+      "apiKeyEnv": "ALIBABA_API_KEY",
+      "providerOptions": {
+        "dashscope": {
+          "enable_thinking": false
+        }
+      },
+      "pricing": {
+        "input_per_mtok": null,
+        "output_per_mtok": null,
+        "cached_input_per_mtok": null
+      },
+      "pricing_verified": null,
+      "notes": "DashScope US endpoint, qwen-flash, enable_thinking false. Run as a floor row. Alibaba Model Studio does not publish a token price on a page that could be read, so the prices are null and the model needs --allow-unpriced."
     }
   ]
 }
