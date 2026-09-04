@@ -60,6 +60,8 @@ export function createModelFactory(entry: ModelEntry, options: FactoryOptions = 
         name: entry.providerName ?? entry.name,
         baseURL: entry.baseURL,
         apiKey,
+        // Ask for usage on streamed replies. DeepSeek sends it unasked; DashScope only when asked.
+        includeUsage: true,
         ...(options.fetch ? { fetch: options.fetch } : {}),
       });
       const model = provider(entry.modelId);
