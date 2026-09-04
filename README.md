@@ -253,6 +253,7 @@ Scored with scorer hash `4d813bd27519ffe6`. Every row is re-scored at report tim
 | model | model id | runs | score | macro value accuracy | lookup | current | asof | join | multihop | exhaustive | aggregation | temporal | rule | abstain |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | qwen3.8-max-0902 | `qwen3.8-max-0902` | 1 | 70.0% | 92.7% | 97.3% (n=37) | 86.7% (n=30) | 96.7% (n=30) | 93.3% (n=30) | 90.0% (n=30) | 100.0% (n=30) | 100.0% (n=30) | 66.7% (n=30) | 100.0% (n=30) | 96.7% (n=30) |
+| gemini-3.8-flash | `gemini-3.8-flash` | 1 | 59.0% | 93.0% | 100.0% (n=37) | 80.0% (n=30) | 93.3% (n=30) | 100.0% (n=30) | 86.7% (n=30) | 100.0% (n=30) | 100.0% (n=30) | 73.3% (n=30) | 100.0% (n=30) | 96.7% (n=30) |
 | deepseek-v4-flash | `deepseek-v4-flash` | 1 | 50.8% | 87.7% | 100.0% (n=37) | 63.3% (n=30) | 90.0% (n=30) | 96.7% (n=30) | 86.7% (n=30) | 96.7% (n=30) | 93.3% (n=30) | 63.3% (n=30) | 100.0% (n=30) | 86.7% (n=30) |
 | qwen3.7-flash-2026-07-15 | `qwen3.7-flash-2026-07-15` | 1 | 50.2% | 83.3% | 89.2% (n=37) | 63.3% (n=30) | 83.3% (n=30) | 90.0% (n=30) | 76.7% (n=30) | 90.0% (n=30) | 86.7% (n=30) | 56.7% (n=30) | 100.0% (n=30) | 96.7% (n=30) |
 
@@ -261,6 +262,7 @@ Scored with scorer hash `4d813bd27519ffe6`. Every row is re-scored at report tim
 | model | value | status | history | sources | sources recall |
 |---|---|---|---|---|---|
 | qwen3.8-max-0902 | 92.8% (n=307) | 98.7% (n=307) | 86.9% (n=61) | 71.7% (n=307) | 84.4% |
+| gemini-3.8-flash | 93.2% (n=307) | 97.7% (n=307) | 75.4% (n=61) | 60.6% (n=307) | 89.4% |
 | deepseek-v4-flash | 87.9% (n=307) | 97.1% (n=307) | 55.7% (n=61) | 55.7% (n=307) | 83.6% |
 | qwen3.7-flash-2026-07-15 | 83.4% (n=307) | 97.7% (n=307) | 49.2% (n=61) | 59.3% (n=307) | 69.2% |
 
@@ -269,6 +271,7 @@ Scored with scorer hash `4d813bd27519ffe6`. Every row is re-scored at report tim
 | model | superseded | statement_shaped_question | quoted_email | proposal | retraction | scope | relative_date | unit | timezone | keyword | same_name | planned_vs_done | negation | chunk_split | format |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | qwen3.8-max-0902 | 85.2% (n=88) | 88.5% (n=26) | 100.0% (n=21) | 89.3% (n=28) | 96.3% (n=27) | 96.6% (n=29) | 80.0% (n=15) | 100.0% (n=21) | 100.0% (n=15) | 94.2% (n=52) | 92.3% (n=26) | 100.0% (n=15) | 98.3% (n=59) | 93.8% (n=16) | 93.9% (n=33) |
+| gemini-3.8-flash | 85.2% (n=88) | 96.2% (n=26) | 95.2% (n=21) | 92.9% (n=28) | 92.6% (n=27) | 96.6% (n=29) | 73.3% (n=15) | 100.0% (n=21) | 93.3% (n=15) | 94.2% (n=52) | 96.2% (n=26) | 100.0% (n=15) | 98.3% (n=59) | 100.0% (n=16) | 90.9% (n=33) |
 | deepseek-v4-flash | 75.0% (n=88) | 80.8% (n=26) | 85.7% (n=21) | 85.7% (n=28) | 59.3% (n=27) | 93.1% (n=29) | 53.3% (n=15) | 85.7% (n=21) | 100.0% (n=15) | 84.6% (n=52) | 88.5% (n=26) | 93.3% (n=15) | 94.9% (n=59) | 100.0% (n=16) | 84.8% (n=33) |
 | qwen3.7-flash-2026-07-15 | 71.6% (n=88) | 84.6% (n=26) | 76.2% (n=21) | 82.1% (n=28) | 63.0% (n=27) | 86.2% (n=29) | 26.7% (n=15) | 90.5% (n=21) | 53.3% (n=15) | 88.5% (n=52) | 84.6% (n=26) | 93.3% (n=15) | 93.2% (n=59) | 93.8% (n=16) | 75.8% (n=33) |
 
@@ -282,6 +285,7 @@ Scored with scorer hash `4d813bd27519ffe6`. Every row is re-scored at report tim
 | model | questions | retries | call errors | mean latency ms | p95 latency ms | mean ttft ms | tokens in | tokens out | tokens reasoning | cost |
 |---|---|---|---|---|---|---|---|---|---|---|
 | qwen3.8-max-0902 | 307 | 0 | 0 | 1518 | 2276 | 833 | 567570 | 19630 | 0 | $1.2529 |
+| gemini-3.8-flash | 307 | 6 | 0 | 2749 | 7613 | 2506 | 562666 | 51471 | 36217 | $0.6150 |
 | deepseek-v4-flash | 307 | 0 | 0 | 943 | 1336 | 593 | 511483 | 18786 | 0 | $0.0405 |
 | qwen3.7-flash-2026-07-15 | 307 | 0 | 0 | 1154 | 1841 | 562 | 567570 | 26103 | 0 | $0.0204 |
 
@@ -294,6 +298,7 @@ Every run uses temperature 0 and a 320 token output budget unless the model reje
 - `deepseek-v4-flash`: temperature 0, max output tokens 320, 1 run.
 - `qwen3.8-max-0902`: temperature 0, max output tokens 320, 1 run.
 - `qwen3.7-flash-2026-07-15`: temperature 0, max output tokens 320, 1 run.
+- `gemini-3.8-flash`: temperature 0, max output tokens 2048, 1 run.
 
 <!-- LEADERBOARD:v1:END -->
 
