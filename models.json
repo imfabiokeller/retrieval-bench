@@ -134,26 +134,6 @@
       "notes": "Offline. Returns null for every field, which is the abstain baseline: 100% on the abstain axis and 0% everywhere else."
     },
     {
-      "name": "qwen-turbo",
-      "provider": "openai-compatible",
-      "providerName": "dashscope",
-      "modelId": "qwen-turbo",
-      "baseURL": "https://dashscope-us.aliyuncs.com/compatible-mode/v1",
-      "apiKeyEnv": "ALIBABA_API_KEY",
-      "providerOptions": {
-        "dashscope": {
-          "enable_thinking": false
-        }
-      },
-      "pricing": {
-        "input_per_mtok": null,
-        "output_per_mtok": null,
-        "cached_input_per_mtok": null
-      },
-      "pricing_verified": null,
-      "notes": "DashScope US endpoint, qwen-turbo, enable_thinking false. Run as a floor row. Alibaba Model Studio does not publish a token price on a page that could be read, so the prices are null and the model needs --allow-unpriced."
-    },
-    {
       "name": "qwen-flash",
       "provider": "openai-compatible",
       "providerName": "dashscope",
