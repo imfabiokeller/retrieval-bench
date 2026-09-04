@@ -210,33 +210,31 @@ table reaches every run that has ever been made without a paid re-run.
 
 ## Cost
 
-A full run has to project under five dollars for the most expensive model in
-`models.json`, and the runner refuses to start otherwise unless it is given
-`--force`. The estimator counts characters over four on the exact prompts it is
-about to send, and bills the full output budget, so it is an upper bound.
+Five dollars is a hard stop on actual spend, not a projection. Every run adds
+up its cost from the token counts the provider reports, and a run that passes
+the cap stops at that question, is marked incomplete in `run.json`, and stays
+out of the leaderboard. Before a run the harness also estimates the input side,
+characters over four on the exact prompts it is about to send, and refuses to
+start when that alone projects over the cap, because input is spent whatever
+the model writes. `--force` overrides both.
 
-For `claude-opus-5` at $5.00 per million input tokens and $25.00 per million
-output tokens, over 307 questions with a 16 chunk window:
+Every model runs with the same parameters: temperature zero, one shared output
+budget of 4096 tokens, and the lowest thinking setting its provider allows.
+There are no per-model output budgets. The budget is large so that the harness
+never cuts a model off; a reply that still hits it is unparseable, scored as
+wrong on every channel, and counted in the `cut off` column so it is visible.
+Models whose thinking cannot be turned off spend part of that budget on thought
+tokens, which are billed as output and shown in the `tokens reasoning` column.
 
-- input: 467,965 tokens, which is 1,524 per question including the system
-  prompt, at $5.00 per million: **$2.34**
-- output: 307 x 320 tokens of budget at $25.00 per million: **$2.46**
-- total projected: **$4.80**
+What a run actually costs is dominated by input. For `claude-opus-5` at $5.00
+per million input tokens, 307 questions with a 16 chunk window come to about
+468,000 estimated input tokens, or roughly $2.34 before the model writes a
+word; replies have run 18,000 to 30,000 output tokens per model so far, which is
+under a dollar at Opus prices. The most expensive run on the board cost $1.72.
 
-The output budget is billed in full whatever the model actually writes, so it is
-where the cap was being wasted. A pack is a small JSON object: across the 307
-replies below the longest is 204 output tokens and the 95th percentile is 140,
-and the run that was made against a 512 token budget measured the same shape.
-More than half of that projection was buying room no reply used. Cutting the
-budget to 320 still leaves the longest reply half again as much room as it
-needed, and it bought 71 more questions, which is what took every family to the
-thirty the design asks for.
-
-Actual cost is computed from the token counts the provider reports rather than
-from the estimate. The `deepseek-v4-flash` run below projected $0.34 and cost
-$0.18: the provider counted 511,483 input tokens against the estimator's
-467,965, of which 172,800 were cache reads, and the replies used 18,572 output
-tokens of the 98,240 budgeted.
+Cost is re-derived at report time from each run's stored token counts and the
+prices in `models.json`, so a price verified later reaches every stored run
+without a re-run.
 
 ## Leaderboard
 
@@ -288,18 +286,18 @@ Scored with scorer hash `4d813bd27519ffe6`. Every row is re-scored at report tim
 
 **Cost and speed.** Tokens and cost are summed over the runs of the row; latency is averaged over them.
 
-| model | questions | retries | call errors | mean latency ms | p95 latency ms | mean ttft ms | tokens in | tokens out | tokens reasoning | cost |
-|---|---|---|---|---|---|---|---|---|---|---|
-| qwen3.8-max-0902 | 307 | 0 | 0 | 1518 | 2276 | 833 | 567570 | 19630 | 0 | $1.2529 |
-| gemini-3.8-flash | 307 | 6 | 0 | 2749 | 7613 | 2506 | 562666 | 51471 | 36217 | $0.6150 |
-| claude-haiku-4-5 | 307 | 0 | 0 | 1242 | 1903 | 697 | 563915 | 23327 | 0 | $0.6805 |
-| claude-sonnet-5 | 307 | 15 | 0 | 2951 | 6129 | 1529 | 712002 | 29552 | 0 | $1.7195 |
-| deepseek-v4-flash | 307 | 0 | 0 | 943 | 1336 | 593 | 511483 | 18786 | 0 | $0.0405 |
-| qwen3.7-flash-2026-07-15 | 307 | 0 | 0 | 1154 | 1841 | 562 | 567570 | 26103 | 0 | $0.0204 |
+| model | questions | retries | cut off | call errors | mean latency ms | p95 latency ms | mean ttft ms | tokens in | tokens out | tokens reasoning | cost |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| qwen3.8-max-0902 | 307 | 0 | 0 | 0 | 1518 | 2276 | 833 | 567570 | 19630 | 0 | $1.2529 |
+| gemini-3.8-flash | 307 | 6 | 2 | 0 | 2749 | 7613 | 2506 | 562666 | 51471 | 36217 | $0.6150 |
+| claude-haiku-4-5 | 307 | 0 | 0 | 0 | 1242 | 1903 | 697 | 563915 | 23327 | 0 | $0.6805 |
+| claude-sonnet-5 | 307 | 15 | 11 | 0 | 2951 | 6129 | 1529 | 712002 | 29552 | 0 | $1.7195 |
+| deepseek-v4-flash | 307 | 0 | 0 | 0 | 943 | 1336 | 593 | 511483 | 18786 | 0 | $0.0405 |
+| qwen3.7-flash-2026-07-15 | 307 | 0 | 0 | 0 | 1154 | 1841 | 562 | 567570 | 26103 | 0 | $0.0204 |
 
 The guarantee held for **100.0%** of the 277 questions that have gold sources, which is a property of the corpus and of these parameters and is the same for every row above. It is a gate, not a metric: the corpus is written until it is 100 percent.
 
-Every run uses temperature 0 and a 320 token output budget unless the model rejects one of those, in which case models.json records the override:
+Every run uses temperature 0, the same output budget, and the lowest thinking setting its provider allows. A model entry may omit temperature only when the provider rejects it, and that is recorded here:
 
 - `oracle`: temperature 0, max output tokens 320, 1 run.
 - `null`: temperature 0, max output tokens 320, 1 run.
@@ -383,9 +381,10 @@ Prices are copied from the provider's own published pricing on the date in
 `pricing_verified`. A price that could not be read is `null`, and the runner
 refuses to run an unpriced model unless it is given `--allow-unpriced`.
 
-Every run uses temperature 0 and a 320 token output budget. A model entry may
-override either only when the provider rejects the fixed value, and the override
-is recorded in `run.json` and shown under the leaderboard.
+Every run uses temperature 0, the shared 4096 token output budget, and the
+lowest thinking setting the provider allows. A model entry may omit temperature
+only when the provider rejects it, and that is recorded in `run.json` and shown
+under the leaderboard. There are no per-model output budgets.
 
 ## Results layout
 

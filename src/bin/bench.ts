@@ -11,7 +11,7 @@
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { loadAliases, loadQuestions, loadRetrievalParams } from "../corpus.js";
-import { enforceCap, project } from "../cost.js";
+import { MAX_PROJECTED_USD, enforceCap, project } from "../cost.js";
 import { gitCommit, paramsHash, pipelineHash } from "../hash.js";
 import { loadIndex } from "../index-io.js";
 import { findModel, isPriced, loadModels } from "../models.js";
@@ -111,9 +111,17 @@ async function runModel(entry: ModelEntry, questions: Question[], options: Optio
   for (let repeat = 0; repeat < options.runs; repeat += 1) {
     const started = new Date();
     const results: ItemResult[] = [];
+    let spent = 0;
+    let stoppedReason: string | null = null;
     for (const [position, question] of questions.entries()) {
       const result = await runItem(context, question);
       results.push(result);
+      spent += result.cost_usd ?? 0;
+      if (spent > MAX_PROJECTED_USD && !options.force) {
+        stoppedReason = `actual spend $${spent.toFixed(2)} passed the $${MAX_PROJECTED_USD.toFixed(2)} cap after ${position + 1} questions`;
+        console.log(`  stopping: ${stoppedReason}`);
+        break;
+      }
       if ((position + 1) % 20 === 0 || position + 1 === questions.length) {
         const correct = results.filter((item) => item.scored.fully_correct).length;
         console.log(`  ${position + 1}/${questions.length} questions, ${correct} packs fully correct`);
@@ -140,6 +148,8 @@ async function runModel(entry: ModelEntry, questions: Question[], options: Optio
       prompt_hash: PROMPT_HASH,
       params_hash: hash,
       git_commit: gitCommit(),
+      complete: stoppedReason === null && results.length === questions.length,
+      stopped_reason: stoppedReason,
       started_at: started.toISOString(),
       finished_at: finished.toISOString(),
       item_count: results.length,

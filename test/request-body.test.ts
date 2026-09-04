@@ -77,7 +77,7 @@ test("providerOptions keys reach the openai-compatible request body verbatim", a
   assert.equal(body.enable_thinking, false);
   assert.equal(body.some_flag, 7);
   assert.equal(body.model, "test-model-v1");
-  assert.equal(body.max_tokens, 320);
+  assert.equal(body.max_tokens, 4096);
   assert.equal(body.temperature, 0);
   assert.equal(captured[0]?.url, "https://api.example.invalid/v1/chat/completions");
 });

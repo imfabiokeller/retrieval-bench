@@ -66,7 +66,7 @@ test("the index matches the corpus it was built from", () => {
   }
 });
 
-test("a full run projects under the cap for the most expensive model in models.json", () => {
+test("the certain input spend of a full run is under the cap for the most expensive model in models.json", () => {
   const priced = loadModels().filter((entry) => isPriced(entry) && entry.provider !== "mock");
   const dearest = priced.sort((a, b) => (b.pricing.output_per_mtok ?? 0) - (a.pricing.output_per_mtok ?? 0))[0];
   assert.ok(dearest, "models.json has no priced model to check the cap against");
@@ -74,10 +74,10 @@ test("a full run projects under the cap for the most expensive model in models.j
     renderPrompt(question, retriever.retrieve(question.question, index.queryVectors.get(question.id), params)),
   );
   const projection = project(dearest, prompts, SYSTEM_PROMPT, DEFAULT_MAX_OUTPUT_TOKENS);
-  assert.ok(projection.usd !== null);
+  assert.ok(projection.inputUsd !== null);
   assert.ok(
-    projection.usd < MAX_PROJECTED_USD,
-    `${dearest.name} projects $${projection.usd.toFixed(2)}, over the $${MAX_PROJECTED_USD.toFixed(2)} cap`,
+    projection.inputUsd < MAX_PROJECTED_USD,
+    `${dearest.name} projects $${projection.inputUsd.toFixed(2)} of certain input spend, over the $${MAX_PROJECTED_USD.toFixed(2)} cap`,
   );
 });
 

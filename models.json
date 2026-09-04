@@ -7,10 +7,10 @@
     "run a model with a null input or output price unless it is given --allow-unpriced.",
     "cached_input_per_mtok is null wherever the cached-read rate was not verified; the",
     "cost estimate then bills cached tokens at the full input rate, which is an upper bound.",
-    "params: the run uses temperature 0 and max_tokens 320 for every model. A model entry",
     "may override that only when the provider rejects the fixed value, and the override is",
     "recorded in run.json and shown in the leaderboard notes.",
-    "modelId is the exact id sent to the provider. Prefer a dated snapshot id wherever the provider offers one; every run also records the id the provider reports serving, and the leaderboard shows it when it differs."
+    "modelId is the exact id sent to the provider. Prefer a dated snapshot id wherever the provider offers one; every run also records the id the provider reports serving, and the leaderboard shows it when it differs.",
+    "params: every run uses temperature 0, one shared output budget, and the lowest thinking setting the provider allows. A model entry may omit temperature only when the provider rejects it; there are no per-model output budgets."
   ],
   "models": [
     {
@@ -166,14 +166,13 @@
           }
         }
       },
-      "maxOutputTokens": 2048,
       "pricing": {
         "input_per_mtok": 0.75,
         "output_per_mtok": 3.75,
         "cached_input_per_mtok": 0.075
       },
       "pricing_verified": "2026-09-04",
-      "notes": "Gemini API, newest flash tier. Google lists no dated snapshot id for it. Gemini 3 models cannot turn thinking off, so thinkingLevel is set to low, and the output budget is raised to 2048 because thought tokens count against it and a one-question probe spent 815 of them at the low level; reasoning tokens are recorded separately. Prices from the Gemini API pricing page, standard paid tier, valid through 2026-12-31 (input doubles to $1.50 and output to $7.50 from 2027-01-01)."
+      "notes": "Gemini API, newest flash tier. Google lists no dated snapshot id for it. Gemini 3 models cannot turn thinking off, so thinkingLevel is set to low, the lowest the provider allows; thought tokens count against the shared output budget and are recorded as reasoning tokens. Prices from the Gemini API pricing page, standard paid tier, valid through 2026-12-31 (input doubles to $1.50 and output to $7.50 from 2027-01-01)."
     },
     {
       "name": "gemini-3.1-pro-preview",
@@ -187,14 +186,13 @@
           }
         }
       },
-      "maxOutputTokens": 1024,
       "pricing": {
         "input_per_mtok": 2.0,
         "output_per_mtok": 12.0,
         "cached_input_per_mtok": 0.2
       },
       "pricing_verified": "2026-09-04",
-      "notes": "Gemini API, the newest pro tier this key can call; a preview id, and Google lists no dated snapshot for it. Thinking cannot be turned off, so thinkingLevel is low and the output budget is 1024. Prices from the Gemini API pricing page, standard paid tier, prompts up to 200K tokens."
+      "notes": "Gemini API, the newest pro tier this key can call; a preview id, and Google lists no dated snapshot for it. Thinking cannot be turned off, so thinkingLevel is low, the lowest the provider allows. Prices from the Gemini API pricing page, standard paid tier, prompts up to 200K tokens."
     }
   ]
 }

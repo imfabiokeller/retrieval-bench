@@ -238,6 +238,9 @@ export interface RunMeta {
   prompt_hash: string;
   params_hash: string;
   git_commit: string | null;
+  /** False when the run stopped early, at the spend cap or otherwise; incomplete runs stay out of the leaderboard. */
+  complete: boolean;
+  stopped_reason: string | null;
   started_at: string;
   finished_at: string;
   item_count: number;

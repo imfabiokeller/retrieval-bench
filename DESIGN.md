@@ -176,9 +176,18 @@ hash) stays in the code because the first published release needs it.
 
 ## Cost
 
-A full run of the corpus must project under five dollars for the most expensive
-model in `models.json`. The estimator refuses otherwise. Corpus size, `top_n`
-and question count are tuned to that line.
+Five dollars is a hard stop on actual spend. A run that passes it, priced from
+the provider's own token counts, stops there, is marked incomplete and stays
+out of the leaderboard. Before a run the harness also refuses to start when the
+input side alone, which is spent whatever the model writes, projects over the
+cap. Corpus size, `top_n` and question count are tuned so that no priced model
+comes near it.
+
+Every model runs with the same parameters: temperature zero, one shared output
+budget large enough that the harness never cuts a model off, and the lowest
+thinking setting its provider allows. There are no per-model output budgets. A
+reply that still hits the budget is unparseable and scored as wrong, and the
+count of such replies is shown per row.
 
 ## Mocks
 

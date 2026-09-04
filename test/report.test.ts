@@ -17,6 +17,8 @@ function meta(overrides: Partial<RunMeta> = {}): RunMeta {
     provider: "openai-compatible",
     model_id: "test",
     served_model_ids: ["test"],
+    complete: true,
+    stopped_reason: null,
     params,
     corpus_version: "v1",
     pipeline_hash: "pipeline",

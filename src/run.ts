@@ -18,7 +18,9 @@ import { scorePack } from "./score.js";
 import type { ItemResult, Question, RetrievalParams, Retrieved, RunParams } from "./types.js";
 
 export const DEFAULT_TEMPERATURE = 0;
-export const DEFAULT_MAX_OUTPUT_TOKENS = 320;
+// One output budget for every model. It is large so that no model is cut off by the
+// harness; a reply that still hits it is unparseable and counted as such.
+export const DEFAULT_MAX_OUTPUT_TOKENS = 4096;
 
 export { PROMPT_HASH };
 
@@ -168,6 +170,6 @@ export function runParamsFor(entry: ModelEntry, retrieval: RetrievalParams): Run
   return {
     ...retrieval,
     temperature: entry.omitTemperature ? null : DEFAULT_TEMPERATURE,
-    max_tokens: entry.maxOutputTokens ?? DEFAULT_MAX_OUTPUT_TOKENS,
+    max_tokens: DEFAULT_MAX_OUTPUT_TOKENS,
   };
 }

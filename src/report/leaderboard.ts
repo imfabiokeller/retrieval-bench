@@ -62,6 +62,8 @@ export interface RunSummary {
   paramsLabel: string;
   paramsHash: string;
   retries: number;
+  /** Replies the output budget cut off, which are unparseable and scored as wrong. */
+  cutOff: number;
   errors: number;
   meanLatencyMs: number;
   p95LatencyMs: number;
@@ -132,6 +134,7 @@ export function summarize(bundle: RunBundle): RunSummary {
     paramsLabel: paramsLabel(bundle.meta.params),
     paramsHash: bundle.meta.params_hash || paramsHash(bundle.meta.params),
     retries: items.reduce((total, item) => total + item.retries, 0),
+    cutOff: items.filter((item) => item.finish_reason === "length").length,
     errors: items.filter((item) => item.error !== null).length,
     meanLatencyMs: mean(items.map((item) => item.latency_ms)),
     p95LatencyMs: percentile(items.map((item) => item.latency_ms), 0.95),
@@ -275,11 +278,12 @@ function renderGroup(rows: ModelRow[], label: string, hash: string, headed: bool
   );
 
   const operations = table(
-    ["model", "questions", "retries", "call errors", "mean latency ms", "p95 latency ms", "mean ttft ms", "tokens in", "tokens out", "tokens reasoning", "cost"],
+    ["model", "questions", "retries", "cut off", "call errors", "mean latency ms", "p95 latency ms", "mean ttft ms", "tokens in", "tokens out", "tokens reasoning", "cost"],
     ordered.map((row) => [
       row.model,
       String(row.runs[0]?.questions ?? 0),
       String(sumOf(row, (run) => run.retries)),
+      String(sumOf(row, (run) => run.cutOff)),
       String(sumOf(row, (run) => run.errors)),
       ms(meanOf(row, (run) => run.meanLatencyMs)),
       ms(meanOf(row, (run) => run.p95LatencyMs)),
@@ -325,7 +329,8 @@ export function renderLeaderboard(bundles: RunBundle[], scorerHash: string): str
   if (bundles.length === 0) {
     return "No runs yet. Run `npm run bench -- --version v1 --model oracle` to produce one.";
   }
-  const rows = groupRuns(bundles);
+  const incomplete = bundles.filter((bundle) => bundle.meta.complete === false);
+  const rows = groupRuns(bundles.filter((bundle) => bundle.meta.complete !== false));
   const first = [...bundles].sort((a, b) => b.items.length - a.items.length)[0]!;
 
   const groups = new Map<string, ModelRow[]>();
@@ -349,8 +354,11 @@ export function renderLeaderboard(bundles: RunBundle[], scorerHash: string): str
 
   const tail = [
     ...(drifted.length === 0 ? [] : ["", "Runs whose score moved when they were re-scored:", "", ...drifted]),
+    ...(incomplete.length === 0
+      ? []
+      : ["", "Runs that stopped early and are not in the tables:", "", ...incomplete.map((bundle) => `- \`${bundle.meta.run_id}\`: ${bundle.meta.stopped_reason ?? "stopped early"}`)]),
     "",
-    "Every run uses temperature 0 and a 320 token output budget unless the model rejects one of those, in which case models.json records the override:",
+    "Every run uses temperature 0, the same output budget, and the lowest thinking setting its provider allows. A model entry may omit temperature only when the provider rejects it, and that is recorded here:",
     "",
     ...rows.map((row) => {
       const run = row.runs[0]!;
