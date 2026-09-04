@@ -58,7 +58,7 @@
     {
       "name": "claude-haiku-4-5",
       "provider": "anthropic",
-      "modelId": "claude-haiku-4-5",
+      "modelId": "claude-haiku-4-5-20251001",
       "apiKeyEnv": "ANTHROPIC_API_KEY",
       "pricing": {
         "input_per_mtok": 1.0,
@@ -66,7 +66,7 @@
         "cached_input_per_mtok": null
       },
       "pricing_verified": "2026-09-03",
-      "notes": "Accepts temperature, so it runs on the fixed parameters with no override."
+      "notes": "Accepts temperature, so it runs on the fixed parameters with no override. Pinned to the dated id the API reported serving for the alias claude-haiku-4-5 on 2026-09-04."
     },
     {
       "name": "deepseek-v4-flash",
