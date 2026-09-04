@@ -23,6 +23,8 @@ export interface ModelEntry {
   providerOptions?: Record<string, Record<string, JSONValue>>;
   /** Set when the provider rejects sampling parameters. */
   omitTemperature?: boolean;
+  /** How thinking was set for the run: "off" when it was turned off, "low" (or another level) when the provider has no off, "none" when the model has no thinking mode. Shown on the model name in every table. */
+  thinking?: string;
   pricing: Pricing;
   pricing_verified: string | null;
   notes?: string;

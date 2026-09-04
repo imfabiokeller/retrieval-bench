@@ -19,6 +19,7 @@
 // spread of its runs, and the row says how many there were.
 
 import { paramsHash, paramsLabel } from "../hash.js";
+import { loadModels } from "../models.js";
 import { FAMILIES, TRAPS } from "../types.js";
 import type { Family, ItemResult, RetrievalParams, Trap } from "../types.js";
 import type { RunBundle } from "./rows.js";
@@ -232,6 +233,14 @@ function harnessChecks(mocks: ModelRow[]): string[] {
 }
 
 /** The pinned id, and the served id when the provider reported a different one. */
+const THINKING_BY_MODEL = new Map(loadModels().map((entry) => [entry.name, entry.thinking ?? null]));
+
+/** The model name with its thinking setting, so a row says what it ran as. */
+function modelLabel(row: ModelRow): string {
+  const thinking = THINKING_BY_MODEL.get(row.model);
+  return thinking && thinking !== "none" ? `${row.model} (thinking ${thinking})` : row.model;
+}
+
 function modelIdCell(row: ModelRow): string {
   const pinned = row.runs[0]?.modelId ?? "";
   const served = [...new Set(row.runs.flatMap((run) => run.servedModelIds))].filter((id) => id !== pinned);
@@ -251,7 +260,7 @@ function renderGroup(rows: ModelRow[], label: string, hash: string, headed: bool
   const headline = table(
     ["model", "model id", "runs", "score", "macro value accuracy", ...families],
     ordered.map((row) => [
-      row.model,
+      modelLabel(row),
       modelIdCell(row),
       String(row.runs.length),
       spread(row.runs.map((run) => run.packsFullyCorrect), null),
@@ -263,7 +272,7 @@ function renderGroup(rows: ModelRow[], label: string, hash: string, headed: bool
   const channels = table(
     ["model", "value", "status", "history", "sources", "sources recall"],
     ordered.map((row) => [
-      row.model,
+      modelLabel(row),
       rateCell(row, (run) => run.value),
       rateCell(row, (run) => run.status),
       rateCell(row, (run) => run.history),
@@ -274,13 +283,13 @@ function renderGroup(rows: ModelRow[], label: string, hash: string, headed: bool
 
   const trapTable = table(
     ["model", ...traps],
-    ordered.map((row) => [row.model, ...traps.map((trap) => rateCell(row, (run) => run.perTrap[trap]))]),
+    ordered.map((row) => [modelLabel(row), ...traps.map((trap) => rateCell(row, (run) => run.perTrap[trap]))]),
   );
 
   const operations = table(
     ["model", "questions", "retries", "cut off", "call errors", "mean latency ms", "p95 latency ms", "mean ttft ms", "tokens in", "tokens out", "tokens reasoning", "cost"],
     ordered.map((row) => [
-      row.model,
+      modelLabel(row),
       String(row.runs[0]?.questions ?? 0),
       String(sumOf(row, (run) => run.retries)),
       String(sumOf(row, (run) => run.cutOff)),

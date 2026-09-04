@@ -10,7 +10,8 @@
     "may override that only when the provider rejects the fixed value, and the override is",
     "recorded in run.json and shown in the leaderboard notes.",
     "modelId is the exact id sent to the provider. Prefer a dated snapshot id wherever the provider offers one; every run also records the id the provider reports serving, and the leaderboard shows it when it differs.",
-    "params: every run uses temperature 0, one shared output budget, and the lowest thinking setting the provider allows. A model entry may omit temperature only when the provider rejects it; there are no per-model output budgets."
+    "params: every run uses temperature 0, one shared output budget, and the lowest thinking setting the provider allows. A model entry may omit temperature only when the provider rejects it; there are no per-model output budgets.",
+    "thinking: how thinking was set for the run. off when the provider let it be turned off, the lowest level when it did not (Gemini 3: low), none for a model with no thinking mode. It is shown on the model name in every table."
   ],
   "models": [
     {
@@ -32,7 +33,8 @@
         "cached_input_per_mtok": null
       },
       "pricing_verified": "2026-09-03",
-      "notes": "Sampling parameters are rejected by this model, so temperature is omitted. Thinking is on by default and is turned off so the 320 token output budget is spent on the answer."
+      "notes": "Sampling parameters are rejected by this model, so temperature is omitted. Thinking is on by default and is turned off so the 320 token output budget is spent on the answer.",
+      "thinking": "off"
     },
     {
       "name": "claude-sonnet-5",
@@ -53,7 +55,8 @@
         "cached_input_per_mtok": null
       },
       "pricing_verified": "2026-09-03",
-      "notes": "Sampling parameters are rejected by this model, so temperature is omitted."
+      "notes": "Sampling parameters are rejected by this model, so temperature is omitted.",
+      "thinking": "off"
     },
     {
       "name": "claude-haiku-4-5",
@@ -66,7 +69,8 @@
         "cached_input_per_mtok": null
       },
       "pricing_verified": "2026-09-03",
-      "notes": "Accepts temperature, so it runs on the fixed parameters with no override. Pinned to the dated id the API reported serving for the alias claude-haiku-4-5 on 2026-09-04."
+      "notes": "Accepts temperature, so it runs on the fixed parameters with no override. Pinned to the dated id the API reported serving for the alias claude-haiku-4-5 on 2026-09-04.",
+      "thinking": "off"
     },
     {
       "name": "deepseek-v4-flash",
@@ -88,7 +92,8 @@
         "cached_input_per_mtok": 0.014
       },
       "pricing_verified": "2026-09-03",
-      "notes": "DeepSeek prices differ between peak and off-peak hours. The peak rate is recorded here so every estimate is an upper bound; off-peak is half. Thinking is on by default, and api-docs.deepseek.com documents thinking as a request body object on POST /chat/completions with type enabled or disabled, so it is set to disabled here: with it enabled the model spent the whole output budget on reasoning and returned no text. DeepSeek publishes no dated snapshot ids; the endpoint lists only deepseek-v4-flash, deepseek-v4-pro and deepseek-v4-flash-vision-exp, and echoes the alias back, so the run date is the only version pin."
+      "notes": "DeepSeek prices differ between peak and off-peak hours. The peak rate is recorded here so every estimate is an upper bound; off-peak is half. Thinking is on by default, and api-docs.deepseek.com documents thinking as a request body object on POST /chat/completions with type enabled or disabled, so it is set to disabled here: with it enabled the model spent the whole output budget on reasoning and returned no text. DeepSeek publishes no dated snapshot ids; the endpoint lists only deepseek-v4-flash, deepseek-v4-pro and deepseek-v4-flash-vision-exp, and echoes the alias back, so the run date is the only version pin.",
+      "thinking": "off"
     },
     {
       "name": "oracle",
@@ -100,7 +105,8 @@
         "cached_input_per_mtok": 0
       },
       "pricing_verified": "2026-09-03",
-      "notes": "Offline. Returns the gold object for every item, so a correct harness scores 100%."
+      "notes": "Offline. Returns the gold object for every item, so a correct harness scores 100%.",
+      "thinking": "none"
     },
     {
       "name": "null",
@@ -112,7 +118,8 @@
         "cached_input_per_mtok": 0
       },
       "pricing_verified": "2026-09-03",
-      "notes": "Offline. Returns null for every field, which is the abstain baseline: 100% on the abstain axis and 0% everywhere else."
+      "notes": "Offline. Returns null for every field, which is the abstain baseline: 100% on the abstain axis and 0% everywhere else.",
+      "thinking": "none"
     },
     {
       "name": "qwen3.7-flash-2026-07-15",
@@ -132,7 +139,8 @@
         "cached_input_per_mtok": null
       },
       "pricing_verified": "2026-09-04",
-      "notes": "DashScope US endpoint, the newest dated snapshot of the flash tier (qwen3.8-flash has no dated id yet), enable_thinking false. Run as the floor row. Prices from the Alibaba Cloud Model Studio pricing page (International, qwen3.7-flash, 0 to 32K context tier, which every call here falls in). Cached-input rate is not stated there, so cached tokens are billed at the full input rate, an upper bound."
+      "notes": "DashScope US endpoint, the newest dated snapshot of the flash tier (qwen3.8-flash has no dated id yet), enable_thinking false. Run as the floor row. Prices from the Alibaba Cloud Model Studio pricing page (International, qwen3.7-flash, 0 to 32K context tier, which every call here falls in). Cached-input rate is not stated there, so cached tokens are billed at the full input rate, an upper bound.",
+      "thinking": "off"
     },
     {
       "name": "qwen3.8-max-0902",
@@ -152,7 +160,8 @@
         "cached_input_per_mtok": null
       },
       "pricing_verified": "2026-09-04",
-      "notes": "DashScope US endpoint, dated snapshot of the current top Qwen tier, enable_thinking false. Prices from the Alibaba Cloud Model Studio pricing page (International, qwen3.8-max, 0 to 1M context tier). Cached-input rate is not stated there, so cached tokens are billed at the full input rate, an upper bound."
+      "notes": "DashScope US endpoint, dated snapshot of the current top Qwen tier, enable_thinking false. Prices from the Alibaba Cloud Model Studio pricing page (International, qwen3.8-max, 0 to 1M context tier). Cached-input rate is not stated there, so cached tokens are billed at the full input rate, an upper bound.",
+      "thinking": "off"
     },
     {
       "name": "gemini-3.8-flash",
@@ -172,7 +181,8 @@
         "cached_input_per_mtok": 0.075
       },
       "pricing_verified": "2026-09-04",
-      "notes": "Gemini API, newest flash tier. Google lists no dated snapshot id for it. Gemini 3 models cannot turn thinking off, so thinkingLevel is set to low, the lowest the provider allows; thought tokens count against the shared output budget and are recorded as reasoning tokens. Prices from the Gemini API pricing page, standard paid tier, valid through 2026-12-31 (input doubles to $1.50 and output to $7.50 from 2027-01-01)."
+      "notes": "Gemini API, newest flash tier. Google lists no dated snapshot id for it. Gemini 3 models cannot turn thinking off, so thinkingLevel is set to low, the lowest the provider allows; thought tokens count against the shared output budget and are recorded as reasoning tokens. Prices from the Gemini API pricing page, standard paid tier, valid through 2026-12-31 (input doubles to $1.50 and output to $7.50 from 2027-01-01).",
+      "thinking": "low"
     },
     {
       "name": "gemini-3.1-pro-preview",
@@ -192,7 +202,8 @@
         "cached_input_per_mtok": 0.2
       },
       "pricing_verified": "2026-09-04",
-      "notes": "Gemini API, the newest pro tier this key can call; a preview id, and Google lists no dated snapshot for it. Thinking cannot be turned off, so thinkingLevel is low, the lowest the provider allows. Prices from the Gemini API pricing page, standard paid tier, prompts up to 200K tokens."
+      "notes": "Gemini API, the newest pro tier this key can call; a preview id, and Google lists no dated snapshot for it. Thinking cannot be turned off, so thinkingLevel is low, the lowest the provider allows. Prices from the Gemini API pricing page, standard paid tier, prompts up to 200K tokens.",
+      "thinking": "low"
     }
   ]
 }
