@@ -9,7 +9,8 @@
     "cost estimate then bills cached tokens at the full input rate, which is an upper bound.",
     "params: the run uses temperature 0 and max_tokens 320 for every model. A model entry",
     "may override that only when the provider rejects the fixed value, and the override is",
-    "recorded in run.json and shown in the leaderboard notes."
+    "recorded in run.json and shown in the leaderboard notes.",
+    "modelId is the exact id sent to the provider. Prefer a dated snapshot id wherever the provider offers one; every run also records the id the provider reports serving, and the leaderboard shows it when it differs."
   ],
   "models": [
     {
@@ -87,27 +88,7 @@
         "cached_input_per_mtok": 0.014
       },
       "pricing_verified": "2026-09-03",
-      "notes": "DeepSeek prices differ between peak and off-peak hours. The peak rate is recorded here so every estimate is an upper bound; off-peak is half. Thinking is on by default, and api-docs.deepseek.com documents thinking as a request body object on POST /chat/completions with type enabled or disabled, so it is set to disabled here: with it enabled the model spent the whole output budget on reasoning and returned no text."
-    },
-    {
-      "name": "qwen-plus",
-      "provider": "openai-compatible",
-      "providerName": "dashscope",
-      "modelId": "qwen-plus",
-      "baseURL": "https://dashscope-us.aliyuncs.com/compatible-mode/v1",
-      "apiKeyEnv": "ALIBABA_API_KEY",
-      "providerOptions": {
-        "dashscope": {
-          "enable_thinking": false
-        }
-      },
-      "pricing": {
-        "input_per_mtok": null,
-        "output_per_mtok": null,
-        "cached_input_per_mtok": null
-      },
-      "pricing_verified": null,
-      "notes": "Alibaba Model Studio does not publish qwen-plus token prices on a page that could be read when this file was written, so the prices are null and this model needs --allow-unpriced. enable_thinking is false because qwen thinks by default."
+      "notes": "DeepSeek prices differ between peak and off-peak hours. The peak rate is recorded here so every estimate is an upper bound; off-peak is half. Thinking is on by default, and api-docs.deepseek.com documents thinking as a request body object on POST /chat/completions with type enabled or disabled, so it is set to disabled here: with it enabled the model spent the whole output budget on reasoning and returned no text. DeepSeek publishes no dated snapshot ids; the endpoint lists only deepseek-v4-flash, deepseek-v4-pro and deepseek-v4-flash-vision-exp, and echoes the alias back, so the run date is the only version pin."
     },
     {
       "name": "oracle",
@@ -134,10 +115,10 @@
       "notes": "Offline. Returns null for every field, which is the abstain baseline: 100% on the abstain axis and 0% everywhere else."
     },
     {
-      "name": "qwen-flash",
+      "name": "qwen3.7-flash-2026-07-15",
       "provider": "openai-compatible",
       "providerName": "dashscope",
-      "modelId": "qwen-flash",
+      "modelId": "qwen3.7-flash-2026-07-15",
       "baseURL": "https://dashscope-us.aliyuncs.com/compatible-mode/v1",
       "apiKeyEnv": "ALIBABA_API_KEY",
       "providerOptions": {
@@ -151,13 +132,13 @@
         "cached_input_per_mtok": null
       },
       "pricing_verified": null,
-      "notes": "DashScope US endpoint, qwen-flash, enable_thinking false. Run as a floor row. Alibaba Model Studio does not publish a token price on a page that could be read, so the prices are null and the model needs --allow-unpriced."
+      "notes": "DashScope US endpoint, the newest dated snapshot of the flash tier (qwen3.8-flash has no dated id yet), enable_thinking false. Run as the floor row. Price unverified, so the model needs --allow-unpriced."
     },
     {
-      "name": "qwen3-max",
+      "name": "qwen3.8-max-0902",
       "provider": "openai-compatible",
       "providerName": "dashscope",
-      "modelId": "qwen3-max",
+      "modelId": "qwen3.8-max-0902",
       "baseURL": "https://dashscope-us.aliyuncs.com/compatible-mode/v1",
       "apiKeyEnv": "ALIBABA_API_KEY",
       "providerOptions": {
@@ -171,7 +152,7 @@
         "cached_input_per_mtok": null
       },
       "pricing_verified": null,
-      "notes": "DashScope US endpoint, qwen3-max, enable_thinking false. Alibaba Model Studio does not publish a token price on a page that could be read, so the prices are null and the model needs --allow-unpriced."
+      "notes": "DashScope US endpoint, dated snapshot of the current top Qwen tier, enable_thinking false. Alibaba Model Studio does not publish a token price on a page that could be read, so the prices are null and the model needs --allow-unpriced."
     }
   ]
 }

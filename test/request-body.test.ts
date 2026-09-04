@@ -108,7 +108,7 @@ test("the deepseek entry in models.json sends its thinking flag", async () => {
 });
 
 test("the qwen entry in models.json sends enable_thinking false", async () => {
-  const entry = { ...findModel("qwen-plus"), apiKeyEnv: KEY_ENV };
+  const entry = { ...findModel("qwen3.8-max-0902"), apiKeyEnv: KEY_ENV };
   const { captured } = await callWith(entry);
   assert.equal(captured[0]?.body.enable_thinking, false, "dashscope must be asked for the non-thinking model");
 });

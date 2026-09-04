@@ -16,6 +16,7 @@ function meta(overrides: Partial<RunMeta> = {}): RunMeta {
     model_name: "test-model",
     provider: "openai-compatible",
     model_id: "test",
+    served_model_ids: ["test"],
     params,
     corpus_version: "v1",
     pipeline_hash: "pipeline",
@@ -58,6 +59,7 @@ function item(id: string, family: Family, traps: Trap[], correct: boolean, histo
     family,
     traps,
     question: `question ${id}`,
+    served_model_id: "test",
     answer_type: "number",
     retrieved_chunk_ids: ["c#0"],
     retrieved_doc_ids: ["d"],
@@ -129,7 +131,7 @@ test("several runs of one model on the same parameters are one row with a spread
     ],
     "scorer",
   );
-  assert.ok(block.includes("| test-model | 2 |"), "the row says how many runs it covers");
+  assert.ok(block.includes("| test-model | `test` | 2 |"), "the row says how many runs it covers");
   assert.ok(/75\.0% \(50\.0–100\.0\)/.test(block), "the headline cell carries the mean and the spread");
 });
 
@@ -184,7 +186,7 @@ test("the offline mocks are listed as harness checks and kept out of the ranking
     ],
     "scorer",
   );
-  assert.ok(block.includes("| test-model | 1 |"), "the real model is ranked");
+  assert.ok(block.includes("| test-model | `test` | 1 |"), "the real model is ranked");
   assert.ok(!block.includes("| oracle |"), "the mock has no row in the ranking");
   assert.ok(block.includes("Harness checks"), "the mocks are listed under harness checks");
   assert.ok(/`oracle`: score 100\.0%/.test(block), "the mock result is stated on its line");

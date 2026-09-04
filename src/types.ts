@@ -214,6 +214,8 @@ export interface ItemResult {
   cost_usd: number | null;
   retries: number;
   finish_reason: string | null;
+  /** The model id the provider reported on this reply. */
+  served_model_id: string | null;
   error: string | null;
 }
 
@@ -228,6 +230,8 @@ export interface RunMeta {
   model_name: string;
   provider: string;
   model_id: string;
+  /** Every distinct model id the provider reported across the run's replies. */
+  served_model_ids: string[];
   params: RunParams;
   corpus_version: string;
   pipeline_hash: string;

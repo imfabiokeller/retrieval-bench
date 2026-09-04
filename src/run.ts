@@ -30,6 +30,8 @@ export interface CallOutcome {
   tokensReasoning: number | null;
   tokensCached: number | null;
   finishReason: string | null;
+  /** The model id the provider reported on the reply, which is the id actually served. */
+  servedModelId: string | null;
   error: string | null;
 }
 
@@ -59,7 +61,9 @@ export async function callModel(
     }
     const usage = await result.usage;
     const finishReason = await result.finishReason;
+    const response = await result.response;
     return {
+      servedModelId: response.modelId ?? null,
       text,
       ttftMs,
       tokensIn: usage.inputTokens ?? null,
@@ -78,6 +82,7 @@ export async function callModel(
       tokensReasoning: null,
       tokensCached: null,
       finishReason: null,
+      servedModelId: null,
       error: error instanceof Error ? error.message : String(error),
     };
   }
@@ -154,6 +159,7 @@ export async function runItem(context: RunItemContext, question: Question): Prom
     cost_usd: costUsd(context.entry, { tokensIn, tokensOut, tokensCached }),
     retries,
     finish_reason: outcome.finishReason,
+    served_model_id: outcome.servedModelId,
     error: outcome.error,
   };
 }

@@ -36,6 +36,7 @@ function stored(raw: string, overrides: Partial<ItemResult> = {}): ItemResult {
     family: "lookup",
     traps: [],
     question: "stale question text",
+    served_model_id: null,
     answer_type: "string",
     retrieved_chunk_ids: ["a#0"],
     retrieved_doc_ids: ["a", "b", "c"],

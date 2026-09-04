@@ -42,6 +42,9 @@ export interface RunSummary {
   runIndex: number;
   model: string;
   provider: string;
+  /** The id pinned in models.json, and the ids the provider reported serving. */
+  modelId: string;
+  servedModelIds: string[];
   questions: number;
   /** The mean of value accuracy over the families that have questions. */
   macroValue: number;
@@ -112,6 +115,8 @@ export function summarize(bundle: RunBundle): RunSummary {
     runIndex: bundle.meta.run_index,
     model: bundle.meta.model_name,
     provider: bundle.meta.provider,
+    modelId: bundle.meta.model_id,
+    servedModelIds: bundle.meta.served_model_ids ?? [],
     questions: items.length,
     macroValue: mean(covered.map((family) => perFamily[family].accuracy)),
     packsFullyCorrect: share(items.filter((item) => item.scored.fully_correct).length, items.length).accuracy,
@@ -223,6 +228,13 @@ function harnessChecks(mocks: ModelRow[]): string[] {
   ];
 }
 
+/** The pinned id, and the served id when the provider reported a different one. */
+function modelIdCell(row: ModelRow): string {
+  const pinned = row.runs[0]?.modelId ?? "";
+  const served = [...new Set(row.runs.flatMap((run) => run.servedModelIds))].filter((id) => id !== pinned);
+  return served.length === 0 ? `\`${pinned}\`` : `\`${pinned}\` (served \`${served.join("`, `")}\`)`;
+}
+
 function renderGroup(rows: ModelRow[], label: string, hash: string, headed: boolean): string[] {
   const mocks = rows.filter((row) => row.provider === "mock");
   const ordered = rows.filter((row) => row.provider !== "mock").sort(
@@ -234,9 +246,10 @@ function renderGroup(rows: ModelRow[], label: string, hash: string, headed: bool
   const traps = TRAPS.filter((trap) => ordered.some((row) => row.runs[0]?.perTrap[trap].n));
 
   const headline = table(
-    ["model", "runs", "score", "macro value accuracy", ...families],
+    ["model", "model id", "runs", "score", "macro value accuracy", ...families],
     ordered.map((row) => [
       row.model,
+      modelIdCell(row),
       String(row.runs.length),
       spread(row.runs.map((run) => run.packsFullyCorrect), null),
       spread(row.runs.map((run) => run.macroValue), null),

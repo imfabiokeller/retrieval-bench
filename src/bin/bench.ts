@@ -133,6 +133,7 @@ async function runModel(entry: ModelEntry, questions: Question[], options: Optio
       model_name: entry.name,
       provider: entry.provider,
       model_id: entry.modelId,
+      served_model_ids: [...new Set(results.map((result) => result.served_model_id).filter((id): id is string => id !== null))].sort(),
       params,
       corpus_version: options.version,
       pipeline_hash: pipelineHash(),
