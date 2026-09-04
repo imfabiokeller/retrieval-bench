@@ -1,8 +1,11 @@
 {
-  "run_id": "20260904-100451-qwen3-max",
-  "model_name": "qwen3-max",
+  "run_id": "20260904-104431-qwen3.8-max-0902",
+  "model_name": "qwen3.8-max-0902",
   "provider": "openai-compatible",
-  "model_id": "qwen3-max",
+  "model_id": "qwen3.8-max-0902",
+  "served_model_ids": [
+    "qwen3.8-max-0902"
+  ],
   "params": {
     "top_n": 16,
     "rrf_k": 60,
@@ -15,19 +18,19 @@
   "pipeline_hash": "c9ff11afc1436a70",
   "prompt_hash": "dff88c3a4526f8e2",
   "params_hash": "fa7f7600",
-  "git_commit": "e99cac2576c6005a3c52f20bf85201ec2522424e",
-  "started_at": "2026-09-04T10:04:51.953Z",
-  "finished_at": "2026-09-04T10:14:29.763Z",
+  "git_commit": "a9e09a97848207119ed0f63d4473f91a51e4e049",
+  "started_at": "2026-09-04T10:44:31.573Z",
+  "finished_at": "2026-09-04T10:52:18.669Z",
   "item_count": 307,
   "run_index": 1,
-  "packs_fully_correct_at_run": 159,
-  "pack_accuracy_at_run": 0.5179153094462541,
+  "packs_fully_correct_at_run": 215,
+  "pack_accuracy_at_run": 0.7003257328990228,
   "projected_cost_usd": null,
   "actual_cost_usd": null,
-  "tokens_in": 554314,
-  "tokens_out": 18189,
+  "tokens_in": 567570,
+  "tokens_out": 19630,
   "tokens_reasoning": 0,
-  "tokens_cached": 93440,
+  "tokens_cached": 5120,
   "errors": 0,
   "retries": 0
 }
