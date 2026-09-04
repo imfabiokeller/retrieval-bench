@@ -12,7 +12,7 @@
     "recency_weight": 0.1,
     "max_chunks_per_doc": 2,
     "temperature": null,
-    "max_tokens": 320
+    "max_tokens": 4096
   },
   "corpus_version": "v1",
   "pipeline_hash": "c9ff11afc1436a70",
@@ -26,11 +26,29 @@
   "packs_fully_correct_at_run": 170,
   "pack_accuracy_at_run": 0.5537459283387622,
   "projected_cost_usd": 1.91833,
-  "actual_cost_usd": 1.7195239999999998,
+  "actual_cost_usd": 1.722934,
   "tokens_in": 712002,
-  "tokens_out": 29552,
+  "tokens_out": 29893,
   "tokens_reasoning": 0,
   "tokens_cached": 0,
   "errors": 0,
-  "retries": 15
+  "retries": 15,
+  "patched": {
+    "items": [
+      "q-abstain-kestrel-batch",
+      "q-asof-batch",
+      "q-asof-ratelimit",
+      "q-current-nightly-job",
+      "q-current-premium-response",
+      "q-current-ratelimit",
+      "q-multihop-kestrel-sla",
+      "q-temporal-batch",
+      "q-temporal-ratelimit",
+      "q-temporal-store-shards",
+      "q-temporal-tls-window"
+    ],
+    "from_run": "20260904-133219-claude-sonnet-5",
+    "max_tokens": 4096,
+    "reason": "These replies were cut off by the 320 token output budget the run was made with. They were re-run alone under the shared 4096 token budget, same corpus, retrieval, prompt and temperature, and swapped in."
+  }
 }

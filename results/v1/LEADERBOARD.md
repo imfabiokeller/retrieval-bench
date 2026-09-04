@@ -15,7 +15,7 @@ Scored with scorer hash `4d813bd27519ffe6`. Every row is re-scored at report tim
 | qwen3.8-max-0902 | `qwen3.8-max-0902` | 1 | 70.0% | 92.7% | 97.3% (n=37) | 86.7% (n=30) | 96.7% (n=30) | 93.3% (n=30) | 90.0% (n=30) | 100.0% (n=30) | 100.0% (n=30) | 66.7% (n=30) | 100.0% (n=30) | 96.7% (n=30) |
 | gemini-3.8-flash | `gemini-3.8-flash` | 1 | 59.0% | 93.0% | 100.0% (n=37) | 80.0% (n=30) | 93.3% (n=30) | 100.0% (n=30) | 86.7% (n=30) | 100.0% (n=30) | 100.0% (n=30) | 73.3% (n=30) | 100.0% (n=30) | 96.7% (n=30) |
 | claude-haiku-4-5 | `claude-haiku-4-5` (served `claude-haiku-4-5-20251001`) | 1 | 58.3% | 86.3% | 100.0% (n=37) | 86.7% (n=30) | 83.3% (n=30) | 86.7% (n=30) | 80.0% (n=30) | 100.0% (n=30) | 90.0% (n=30) | 46.7% (n=30) | 93.3% (n=30) | 96.7% (n=30) |
-| claude-sonnet-5 | `claude-sonnet-5` | 1 | 55.4% | 87.1% | 97.3% (n=37) | 63.3% (n=30) | 80.0% (n=30) | 93.3% (n=30) | 73.3% (n=30) | 100.0% (n=30) | 100.0% (n=30) | 73.3% (n=30) | 96.7% (n=30) | 93.3% (n=30) |
+| claude-sonnet-5 | `claude-sonnet-5` | 1 | 56.0% | 89.4% | 97.3% (n=37) | 73.3% (n=30) | 86.7% (n=30) | 93.3% (n=30) | 76.7% (n=30) | 100.0% (n=30) | 100.0% (n=30) | 76.7% (n=30) | 96.7% (n=30) | 93.3% (n=30) |
 | deepseek-v4-flash | `deepseek-v4-flash` | 1 | 50.8% | 87.7% | 100.0% (n=37) | 63.3% (n=30) | 90.0% (n=30) | 96.7% (n=30) | 86.7% (n=30) | 96.7% (n=30) | 93.3% (n=30) | 63.3% (n=30) | 100.0% (n=30) | 86.7% (n=30) |
 | qwen3.7-flash-2026-07-15 | `qwen3.7-flash-2026-07-15` | 1 | 50.2% | 83.3% | 89.2% (n=37) | 63.3% (n=30) | 83.3% (n=30) | 90.0% (n=30) | 76.7% (n=30) | 90.0% (n=30) | 86.7% (n=30) | 56.7% (n=30) | 100.0% (n=30) | 96.7% (n=30) |
 
@@ -26,7 +26,7 @@ Scored with scorer hash `4d813bd27519ffe6`. Every row is re-scored at report tim
 | qwen3.8-max-0902 | 92.8% (n=307) | 98.7% (n=307) | 86.9% (n=61) | 71.7% (n=307) | 84.4% |
 | gemini-3.8-flash | 93.2% (n=307) | 97.7% (n=307) | 75.4% (n=61) | 60.6% (n=307) | 89.4% |
 | claude-haiku-4-5 | 86.6% (n=307) | 96.7% (n=307) | 83.6% (n=61) | 63.2% (n=307) | 74.4% |
-| claude-sonnet-5 | 87.3% (n=307) | 96.1% (n=307) | 59.0% (n=61) | 59.6% (n=307) | 82.3% |
+| claude-sonnet-5 | 89.6% (n=307) | 99.3% (n=307) | 63.9% (n=61) | 60.9% (n=307) | 85.7% |
 | deepseek-v4-flash | 87.9% (n=307) | 97.1% (n=307) | 55.7% (n=61) | 55.7% (n=307) | 83.6% |
 | qwen3.7-flash-2026-07-15 | 83.4% (n=307) | 97.7% (n=307) | 49.2% (n=61) | 59.3% (n=307) | 69.2% |
 
@@ -37,7 +37,7 @@ Scored with scorer hash `4d813bd27519ffe6`. Every row is re-scored at report tim
 | qwen3.8-max-0902 | 85.2% (n=88) | 88.5% (n=26) | 100.0% (n=21) | 89.3% (n=28) | 96.3% (n=27) | 96.6% (n=29) | 80.0% (n=15) | 100.0% (n=21) | 100.0% (n=15) | 94.2% (n=52) | 92.3% (n=26) | 100.0% (n=15) | 98.3% (n=59) | 93.8% (n=16) | 93.9% (n=33) |
 | gemini-3.8-flash | 85.2% (n=88) | 96.2% (n=26) | 95.2% (n=21) | 92.9% (n=28) | 92.6% (n=27) | 96.6% (n=29) | 73.3% (n=15) | 100.0% (n=21) | 93.3% (n=15) | 94.2% (n=52) | 96.2% (n=26) | 100.0% (n=15) | 98.3% (n=59) | 100.0% (n=16) | 90.9% (n=33) |
 | claude-haiku-4-5 | 79.5% (n=88) | 92.3% (n=26) | 90.5% (n=21) | 85.7% (n=28) | 85.2% (n=27) | 86.2% (n=29) | 33.3% (n=15) | 90.5% (n=21) | 93.3% (n=15) | 90.4% (n=52) | 84.6% (n=26) | 100.0% (n=15) | 96.6% (n=59) | 100.0% (n=16) | 93.9% (n=33) |
-| claude-sonnet-5 | 71.6% (n=88) | 80.8% (n=26) | 81.0% (n=21) | 75.0% (n=28) | 74.1% (n=27) | 82.8% (n=29) | 93.3% (n=15) | 100.0% (n=21) | 86.7% (n=15) | 86.5% (n=52) | 88.5% (n=26) | 100.0% (n=15) | 93.2% (n=59) | 100.0% (n=16) | 87.9% (n=33) |
+| claude-sonnet-5 | 78.4% (n=88) | 80.8% (n=26) | 95.2% (n=21) | 82.1% (n=28) | 81.5% (n=27) | 93.1% (n=29) | 93.3% (n=15) | 100.0% (n=21) | 93.3% (n=15) | 86.5% (n=52) | 88.5% (n=26) | 100.0% (n=15) | 93.2% (n=59) | 100.0% (n=16) | 90.9% (n=33) |
 | deepseek-v4-flash | 75.0% (n=88) | 80.8% (n=26) | 85.7% (n=21) | 85.7% (n=28) | 59.3% (n=27) | 93.1% (n=29) | 53.3% (n=15) | 85.7% (n=21) | 100.0% (n=15) | 84.6% (n=52) | 88.5% (n=26) | 93.3% (n=15) | 94.9% (n=59) | 100.0% (n=16) | 84.8% (n=33) |
 | qwen3.7-flash-2026-07-15 | 71.6% (n=88) | 84.6% (n=26) | 76.2% (n=21) | 82.1% (n=28) | 63.0% (n=27) | 86.2% (n=29) | 26.7% (n=15) | 90.5% (n=21) | 53.3% (n=15) | 88.5% (n=52) | 84.6% (n=26) | 93.3% (n=15) | 93.2% (n=59) | 93.8% (n=16) | 75.8% (n=33) |
 
@@ -53,11 +53,15 @@ Scored with scorer hash `4d813bd27519ffe6`. Every row is re-scored at report tim
 | qwen3.8-max-0902 | 307 | 0 | 0 | 0 | 1518 | 2276 | 833 | 567570 | 19630 | 0 | $1.2529 |
 | gemini-3.8-flash | 307 | 6 | 2 | 0 | 2749 | 7613 | 2506 | 562666 | 51471 | 36217 | $0.6150 |
 | claude-haiku-4-5 | 307 | 0 | 0 | 0 | 1242 | 1903 | 697 | 563915 | 23327 | 0 | $0.6805 |
-| claude-sonnet-5 | 307 | 15 | 11 | 0 | 2951 | 6129 | 1529 | 712002 | 29552 | 0 | $1.7195 |
+| claude-sonnet-5 | 307 | 4 | 0 | 0 | 2787 | 4418 | 1526 | 712002 | 29893 | 0 | $1.7229 |
 | deepseek-v4-flash | 307 | 0 | 0 | 0 | 943 | 1336 | 593 | 511483 | 18786 | 0 | $0.0405 |
 | qwen3.7-flash-2026-07-15 | 307 | 0 | 0 | 0 | 1154 | 1841 | 562 | 567570 | 26103 | 0 | $0.0204 |
 
 The guarantee held for **100.0%** of the 277 questions that have gold sources, which is a property of the corpus and of these parameters and is the same for every row above. It is a gate, not a metric: the corpus is written until it is 100 percent.
+
+Runs whose score moved when they were re-scored:
+
+- `20260904-130248-claude-sonnet-5`: 55.4% of packs fully correct at run time, 56.0% now.
 
 Every run uses temperature 0, the same output budget, and the lowest thinking setting its provider allows. A model entry may omit temperature only when the provider rejects it, and that is recorded here:
 
@@ -67,5 +71,5 @@ Every run uses temperature 0, the same output budget, and the lowest thinking se
 - `qwen3.8-max-0902`: temperature 0, max output tokens 320, 1 run.
 - `qwen3.7-flash-2026-07-15`: temperature 0, max output tokens 320, 1 run.
 - `gemini-3.8-flash`: temperature 0, max output tokens 2048, 1 run.
-- `claude-sonnet-5`: temperature omitted, max output tokens 320, 1 run.
+- `claude-sonnet-5`: temperature omitted, max output tokens 4096, 1 run.
 - `claude-haiku-4-5`: temperature 0, max output tokens 320, 1 run.

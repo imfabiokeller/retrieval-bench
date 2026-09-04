@@ -1,4 +1,4 @@
-// npm run bench -- --version v1 --model <name|all> [--runs N] [--limit N] [--force] [--allow-unpriced]
+// npm run bench -- --version v1 --model <name|all> [--runs N] [--limit N] [--only id,id,...] [--force] [--allow-unpriced]
 //
 // Runs the fixed pipeline over every question for one model and writes
 // results/<version>/runs/<run-id>/{items.jsonl,run.json}. The run id is
@@ -29,6 +29,8 @@ interface Options {
   models: string[];
   runs: number;
   limit: number | null;
+  /** Question ids to run, and nothing else. For patching specific replies of a stored run. */
+  only: string[] | null;
   force: boolean;
   allowUnpriced: boolean;
 }
@@ -49,6 +51,7 @@ function parseArgs(argv: string[]): Options {
     models: modelArg === "all" ? loadModels().map((entry) => entry.name) : [modelArg],
     runs: repeats,
     limit: limit === null ? null : Number(limit),
+    only: value("only")?.split(",").map((id) => id.trim()).filter(Boolean) ?? null,
     force: argv.includes("--force"),
     allowUnpriced: argv.includes("--allow-unpriced"),
   };
@@ -177,7 +180,8 @@ async function runModel(entry: ModelEntry, questions: Question[], options: Optio
 async function main(): Promise<void> {
   const options = parseArgs(process.argv.slice(2));
   const all = loadQuestions(options.version);
-  const questions = options.limit === null ? all : all.slice(0, options.limit);
+  const chosen = options.only === null ? all : all.filter((question) => options.only!.includes(question.id));
+  const questions = options.limit === null ? chosen : chosen.slice(0, options.limit);
   for (const name of options.models) {
     await runModel(findModel(name), questions, options);
   }
