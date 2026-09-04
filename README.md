@@ -281,9 +281,9 @@ Scored with scorer hash `4d813bd27519ffe6`. Every row is re-scored at report tim
 
 | model | questions | retries | call errors | mean latency ms | p95 latency ms | mean ttft ms | tokens in | tokens out | tokens reasoning | cost |
 |---|---|---|---|---|---|---|---|---|---|---|
-| qwen3.8-max-0902 | 307 | 0 | 0 | 1518 | 2276 | 833 | 567570 | 19630 | 0 | n/a |
+| qwen3.8-max-0902 | 307 | 0 | 0 | 1518 | 2276 | 833 | 567570 | 19630 | 0 | $1.2529 |
 | deepseek-v4-flash | 307 | 0 | 0 | 943 | 1336 | 593 | 511483 | 18786 | 0 | $0.0405 |
-| qwen3.7-flash-2026-07-15 | 307 | 0 | 0 | 1154 | 1841 | 562 | 567570 | 26103 | 0 | n/a |
+| qwen3.7-flash-2026-07-15 | 307 | 0 | 0 | 1154 | 1841 | 562 | 567570 | 26103 | 0 | $0.0204 |
 
 The guarantee held for **100.0%** of the 277 questions that have gold sources, which is a property of the corpus and of these parameters and is the same for every row above. It is a gate, not a metric: the corpus is written until it is 100 percent.
 

@@ -127,12 +127,12 @@
         }
       },
       "pricing": {
-        "input_per_mtok": null,
-        "output_per_mtok": null,
+        "input_per_mtok": 0.03,
+        "output_per_mtok": 0.13,
         "cached_input_per_mtok": null
       },
-      "pricing_verified": null,
-      "notes": "DashScope US endpoint, the newest dated snapshot of the flash tier (qwen3.8-flash has no dated id yet), enable_thinking false. Run as the floor row. Price unverified, so the model needs --allow-unpriced."
+      "pricing_verified": "2026-09-04",
+      "notes": "DashScope US endpoint, the newest dated snapshot of the flash tier (qwen3.8-flash has no dated id yet), enable_thinking false. Run as the floor row. Prices from the Alibaba Cloud Model Studio pricing page (International, qwen3.7-flash, 0 to 32K context tier, which every call here falls in). Cached-input rate is not stated there, so cached tokens are billed at the full input rate, an upper bound."
     },
     {
       "name": "qwen3.8-max-0902",
@@ -147,12 +147,12 @@
         }
       },
       "pricing": {
-        "input_per_mtok": null,
-        "output_per_mtok": null,
+        "input_per_mtok": 2.0,
+        "output_per_mtok": 6.0,
         "cached_input_per_mtok": null
       },
-      "pricing_verified": null,
-      "notes": "DashScope US endpoint, dated snapshot of the current top Qwen tier, enable_thinking false. Alibaba Model Studio does not publish a token price on a page that could be read, so the prices are null and the model needs --allow-unpriced."
+      "pricing_verified": "2026-09-04",
+      "notes": "DashScope US endpoint, dated snapshot of the current top Qwen tier, enable_thinking false. Prices from the Alibaba Cloud Model Studio pricing page (International, qwen3.8-max, 0 to 1M context tier). Cached-input rate is not stated there, so cached tokens are billed at the full input rate, an upper bound."
     }
   ]
 }
