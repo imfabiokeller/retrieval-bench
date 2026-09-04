@@ -253,21 +253,24 @@ Scored with scorer hash `4d813bd27519ffe6`. Every row is re-scored at report tim
 | model | runs | score | macro value accuracy | lookup | current | asof | join | multihop | exhaustive | aggregation | temporal | rule | abstain |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | deepseek-v4-flash | 1 | 52.4% | 87.7% | 100.0% (n=37) | 63.3% (n=30) | 90.0% (n=30) | 100.0% (n=30) | 86.7% (n=30) | 96.7% (n=30) | 93.3% (n=30) | 63.3% (n=30) | 96.7% (n=30) | 86.7% (n=30) |
-| qwen-flash | 1 | 37.8% | 77.6% | 89.2% (n=37) | 56.7% (n=30) | 70.0% (n=30) | 90.0% (n=30) | 90.0% (n=30) | 96.7% (n=30) | 70.0% (n=30) | 53.3% (n=30) | 96.7% (n=30) | 63.3% (n=30) |
+| qwen3-max | 1 | 51.8% | 89.3% | 100.0% (n=37) | 83.3% (n=30) | 93.3% (n=30) | 96.7% (n=30) | 83.3% (n=30) | 96.7% (n=30) | 96.7% (n=30) | 56.7% (n=30) | 96.7% (n=30) | 90.0% (n=30) |
+| qwen-flash | 1 | 36.5% | 76.9% | 91.9% (n=37) | 56.7% (n=30) | 66.7% (n=30) | 93.3% (n=30) | 80.0% (n=30) | 96.7% (n=30) | 70.0% (n=30) | 50.0% (n=30) | 93.3% (n=30) | 70.0% (n=30) |
 
 **Channels.** Value and status are scored on every question, history only where the gold carries a chain, sources on every question. Sources recall is the share of gold sources cited, averaged over the questions whose gold cites anything.
 
 | model | value | status | history | sources | sources recall |
 |---|---|---|---|---|---|
 | deepseek-v4-flash | 87.9% (n=307) | 96.7% (n=307) | 54.1% (n=61) | 57.7% (n=307) | 82.8% |
-| qwen-flash | 77.9% (n=307) | 96.1% (n=307) | 47.5% (n=61) | 42.0% (n=307) | 67.4% |
+| qwen3-max | 89.6% (n=307) | 98.0% (n=307) | 42.6% (n=61) | 63.2% (n=307) | 76.4% |
+| qwen-flash | 77.2% (n=307) | 97.1% (n=307) | 47.5% (n=61) | 39.7% (n=307) | 61.8% |
 
 **Trap resistance.** The share of the questions carrying that trap whose value channel was correct.
 
 | model | superseded | statement_shaped_question | quoted_email | proposal | retraction | scope | relative_date | unit | timezone | keyword | same_name | planned_vs_done | negation | chunk_split | format |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | deepseek-v4-flash | 75.0% (n=88) | 80.8% (n=26) | 85.7% (n=21) | 85.7% (n=28) | 59.3% (n=27) | 89.7% (n=29) | 53.3% (n=15) | 85.7% (n=21) | 100.0% (n=15) | 84.6% (n=52) | 88.5% (n=26) | 93.3% (n=15) | 94.9% (n=59) | 100.0% (n=16) | 84.8% (n=33) |
-| qwen-flash | 62.5% (n=88) | 69.2% (n=26) | 81.0% (n=21) | 67.9% (n=28) | 55.6% (n=27) | 72.4% (n=29) | 53.3% (n=15) | 66.7% (n=21) | 93.3% (n=15) | 75.0% (n=52) | 84.6% (n=26) | 93.3% (n=15) | 91.5% (n=59) | 100.0% (n=16) | 78.8% (n=33) |
+| qwen3-max | 80.7% (n=88) | 96.2% (n=26) | 100.0% (n=21) | 89.3% (n=28) | 88.9% (n=27) | 93.1% (n=29) | 60.0% (n=15) | 90.5% (n=21) | 100.0% (n=15) | 90.4% (n=52) | 92.3% (n=26) | 100.0% (n=15) | 94.9% (n=59) | 100.0% (n=16) | 87.9% (n=33) |
+| qwen-flash | 61.4% (n=88) | 76.9% (n=26) | 71.4% (n=21) | 64.3% (n=28) | 59.3% (n=27) | 75.9% (n=29) | 46.7% (n=15) | 71.4% (n=21) | 93.3% (n=15) | 76.9% (n=52) | 76.9% (n=26) | 93.3% (n=15) | 89.8% (n=59) | 100.0% (n=16) | 75.8% (n=33) |
 
 **Harness checks.** The offline mocks are not models and are kept out of the ranking. The oracle returns the gold pack and has to score 100 percent everywhere; the null model answers not_in_evidence to everything and has to score 100 percent on the abstain family and zero elsewhere. If either does not, the scorer is broken.
 
@@ -279,7 +282,8 @@ Scored with scorer hash `4d813bd27519ffe6`. Every row is re-scored at report tim
 | model | questions | retries | call errors | mean latency ms | p95 latency ms | mean ttft ms | tokens in | tokens out | tokens reasoning | cost |
 |---|---|---|---|---|---|---|---|---|---|---|
 | deepseek-v4-flash | 307 | 0 | 0 | 1149 | 1613 | 817 | 511483 | 18572 | 0 | $0.1760 |
-| qwen-flash | 307 | 1 | 0 | 948 | 1392 | 471 | 0 | 0 | 0 | n/a |
+| qwen3-max | 307 | 0 | 0 | 1879 | 3158 | 897 | 554314 | 18189 | 0 | n/a |
+| qwen-flash | 307 | 1 | 0 | 1004 | 1532 | 480 | 554314 | 19386 | 0 | n/a |
 
 The guarantee held for **100.0%** of the 277 questions that have gold sources, which is a property of the corpus and of these parameters and is the same for every row above. It is a gate, not a metric: the corpus is written until it is 100 percent.
 
@@ -288,6 +292,7 @@ Every run uses temperature 0 and a 320 token output budget unless the model reje
 - `oracle`: temperature 0, max output tokens 320, 1 run.
 - `null`: temperature 0, max output tokens 320, 1 run.
 - `deepseek-v4-flash`: temperature 0, max output tokens 320, 1 run.
+- `qwen3-max`: temperature 0, max output tokens 320, 1 run.
 - `qwen-flash`: temperature 0, max output tokens 320, 1 run.
 
 <!-- LEADERBOARD:v1:END -->
