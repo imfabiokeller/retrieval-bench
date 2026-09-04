@@ -13,7 +13,7 @@ export interface Pricing {
 
 export interface ModelEntry {
   name: string;
-  provider: "anthropic" | "openai-compatible" | "mock";
+  provider: "anthropic" | "google" | "openai-compatible" | "mock";
   modelId: string;
   /** openai-compatible only: the provider label, also the providerOptions key. */
   providerName?: string;

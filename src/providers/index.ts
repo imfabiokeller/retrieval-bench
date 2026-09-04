@@ -3,6 +3,7 @@
 // branches on the provider.
 //
 //   anthropic          @ai-sdk/anthropic, the Messages API, native streaming
+//   google             @ai-sdk/google, the Gemini API
 //   openai-compatible  @ai-sdk/openai-compatible, any base URL plus a key
 //   mock               offline, no network, no key
 //
@@ -19,6 +20,7 @@
 // test/request-body.test.ts pins that behaviour against a captured request.
 
 import { createAnthropic } from "@ai-sdk/anthropic";
+import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import type { LanguageModel } from "ai";
 import { requireKey } from "../env.js";
@@ -50,6 +52,14 @@ export function createModelFactory(entry: ModelEntry, options: FactoryOptions = 
     case "anthropic": {
       const apiKey = requireKey(entry.apiKeyEnv ?? "ANTHROPIC_API_KEY");
       const provider = createAnthropic({ apiKey, ...(options.fetch ? { fetch: options.fetch } : {}) });
+      const model = provider(entry.modelId);
+      return { forItem: () => model, billable: true };
+    }
+    case "google": {
+      // The Gemini API through @ai-sdk/google. Gemini 3 models think by default and
+      // cannot turn it off; models.json asks for the lowest level through providerOptions.
+      const apiKey = requireKey(entry.apiKeyEnv ?? "GEMINI_API_KEY");
+      const provider = createGoogleGenerativeAI({ apiKey, ...(options.fetch ? { fetch: options.fetch } : {}) });
       const model = provider(entry.modelId);
       return { forItem: () => model, billable: true };
     }

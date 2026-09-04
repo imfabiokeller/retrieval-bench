@@ -359,7 +359,7 @@ One entry in `models.json` and no code:
 }
 ```
 
-`provider` is `anthropic`, `openai-compatible` or `mock`. Keys under
+`provider` is `anthropic`, `google` (the Gemini API through `@ai-sdk/google`), `openai-compatible` or `mock`. Keys under
 `providerOptions[providerName]` are spread into the JSON request body untouched,
 which is how a provider-specific flag such as a thinking switch gets through;
 `test/request-body.test.ts` captures the outgoing request and pins that.

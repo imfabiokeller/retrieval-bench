@@ -64,7 +64,7 @@ test("the cap lets a run under five dollars through, and never blocks an unprice
 test("every models.json entry is complete enough to run", () => {
   for (const entry of loadModels()) {
     assert.ok(entry.name.length > 0, "a model needs a name");
-    assert.ok(["anthropic", "openai-compatible", "mock"].includes(entry.provider), `${entry.name}: bad provider`);
+    assert.ok(["anthropic", "google", "openai-compatible", "mock"].includes(entry.provider), `${entry.name}: bad provider`);
     assert.ok(entry.modelId.length > 0, `${entry.name}: no modelId`);
     if (entry.provider === "openai-compatible") {
       assert.ok(entry.baseURL, `${entry.name}: openai-compatible needs a baseURL`);

@@ -153,6 +153,48 @@
       },
       "pricing_verified": "2026-09-04",
       "notes": "DashScope US endpoint, dated snapshot of the current top Qwen tier, enable_thinking false. Prices from the Alibaba Cloud Model Studio pricing page (International, qwen3.8-max, 0 to 1M context tier). Cached-input rate is not stated there, so cached tokens are billed at the full input rate, an upper bound."
+    },
+    {
+      "name": "gemini-3.8-flash",
+      "provider": "google",
+      "modelId": "gemini-3.8-flash",
+      "apiKeyEnv": "GEMINI_API_KEY",
+      "providerOptions": {
+        "google": {
+          "thinkingConfig": {
+            "thinkingLevel": "low"
+          }
+        }
+      },
+      "maxOutputTokens": 2048,
+      "pricing": {
+        "input_per_mtok": 0.75,
+        "output_per_mtok": 3.75,
+        "cached_input_per_mtok": 0.075
+      },
+      "pricing_verified": "2026-09-04",
+      "notes": "Gemini API, newest flash tier. Google lists no dated snapshot id for it. Gemini 3 models cannot turn thinking off, so thinkingLevel is set to low, and the output budget is raised to 2048 because thought tokens count against it and a one-question probe spent 815 of them at the low level; reasoning tokens are recorded separately. Prices from the Gemini API pricing page, standard paid tier, valid through 2026-12-31 (input doubles to $1.50 and output to $7.50 from 2027-01-01)."
+    },
+    {
+      "name": "gemini-3.1-pro-preview",
+      "provider": "google",
+      "modelId": "gemini-3.1-pro-preview",
+      "apiKeyEnv": "GEMINI_API_KEY",
+      "providerOptions": {
+        "google": {
+          "thinkingConfig": {
+            "thinkingLevel": "low"
+          }
+        }
+      },
+      "maxOutputTokens": 1024,
+      "pricing": {
+        "input_per_mtok": 2.0,
+        "output_per_mtok": 12.0,
+        "cached_input_per_mtok": 0.2
+      },
+      "pricing_verified": "2026-09-04",
+      "notes": "Gemini API, the newest pro tier this key can call; a preview id, and Google lists no dated snapshot for it. Thinking cannot be turned off, so thinkingLevel is low and the output budget is 1024. Prices from the Gemini API pricing page, standard paid tier, prompts up to 200K tokens."
     }
   ]
 }
